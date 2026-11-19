@@ -1,5 +1,5 @@
 /* Offline-Speicher der OSA-App. Die VERSION wird von "Handy-App aktualisieren.bat" automatisch erhöht. */
-const VERSION = "osa-v9";
+const VERSION = "osa-v10";
 const DATEIEN = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(DATEIEN)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => {
