@@ -336,6 +336,35 @@ input[type=checkbox]:checked::before{transform:rotate(-45deg) scale(1)}
 /* Handy: untere Menüleiste statt Reiterzeile */
 .handyleiste{display:none}
 .mehr-gitter{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+/* Einstellungen: Kategorien links (PC) bzw. Übersicht mit Unterseiten (Handy) */
+.einst-suche{width:100%;margin:0 0 14px;font:inherit;font-size:15px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surf);color:var(--fg)}
+.einst-suche:focus{outline:2px solid var(--acc);outline-offset:1px}
+.einst{display:grid;grid-template-columns:290px minmax(0,1fr);gap:18px;align-items:start}
+.einst-nav{display:flex;flex-direction:column;gap:6px;position:sticky;top:12px}
+.einst-kat{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surf);border-radius:14px;padding:11px 14px;cursor:pointer;color:var(--fg);font:inherit}
+.einst-kat:hover{background:var(--surf2)}
+.einst-kat.on{border-color:var(--acc);background:var(--acc-soft)}
+.einst-kat .ic{font-size:22px;line-height:1;flex:none}
+.einst-kat .tx{flex:1;display:flex;flex-direction:column;min-width:0}
+.einst-kat .tx span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.einst-kat .pfeil{display:none;color:var(--mut);font-size:22px;flex:none}
+.einst-inhalt{display:flex;flex-direction:column;gap:14px;min-width:0}
+.einst-gruppe{display:flex;flex-direction:column;gap:14px}
+.einst-gruppe[hidden],.einst-gruppe > [hidden]{display:none}
+.einst-kopf{display:flex;align-items:center;gap:10px}
+.einst-kopf h2{margin:0}
+.einst-zurueck{display:none}
+.einst.sucht .einst-kat.on{border-color:var(--line);background:var(--surf)}
+@media (max-width:760px){
+ .einst{display:block}
+ .einst-nav{position:static}
+ .einst-kat{padding:14px}
+ .einst-kat .pfeil{display:inline}
+ .einst.hat-kat .einst-nav,.einst.sucht .einst-nav{display:none}
+ .einst:not(.hat-kat):not(.sucht) .einst-inhalt{display:none}
+ .einst.hat-kat:not(.sucht) .einst-zurueck{display:inline-flex}
+ .einst:not(.hat-kat) .einst-kat.on{border-color:var(--line);background:var(--surf)}   /* Übersicht: nichts ist „geöffnet“ */
+}
 .geteilt-text{white-space:pre-wrap;word-break:break-word;max-height:30vh;overflow:auto;padding:10px 12px;border-radius:10px;background:var(--surf2);font-size:14px}
 /* Dauer per Ziehen: Griff an der Unterkante eines Termins */
 .ev-griff{position:absolute;left:0;right:0;bottom:0;height:9px;cursor:ns-resize;touch-action:none;z-index:2}
@@ -13644,7 +13673,8 @@ const NEUIGKEITEN = [
   { version: "2026.11.20c", punkte: [
     "Teilen an OSA (Android): Text aus Mails, Chats oder Webseiten über „Teilen“ direkt als Termin oder Aufgabe übernehmen",
     "Termine an der Unterkante ziehen, um die Dauer zu ändern – in der Woche, bei Tag und 3 Tagen und im Stundenplan",
-    "Farbe pro Fach: neue Einträge eines Fachs bekommen automatisch dieselbe Farbe"
+    "Farbe pro Fach: neue Einträge eines Fachs bekommen automatisch dieselbe Farbe",
+    "Übersichtlichere Einstellungen: in Kategorien sortiert und mit Suchfeld"
   ] },
   { version: "2026.11.20b", punkte: [
     "Neue Kalenderansichten „Tag“ und „3 Tage“ – ideal am Handy; ein Klick auf einen Tageskopf öffnet den Tag",
@@ -13721,6 +13751,12 @@ const I18N_HANDY = {
     "Teilen an OSA (Android): Text aus Mails, Chats oder Webseiten über „Teilen“ direkt als Termin oder Aufgabe übernehmen": "Share to OSA (Android): turn text from emails, chats or websites into an event or task via “Share”",
     "Termine an der Unterkante ziehen, um die Dauer zu ändern – in der Woche, bei Tag und 3 Tagen und im Stundenplan": "Drag the bottom edge of an event to change its duration – in week, day, 3-day and timetable view",
     "Farbe pro Fach: neue Einträge eines Fachs bekommen automatisch dieselbe Farbe": "Colour per subject: new entries of a subject automatically get the same colour",
+    "Übersichtlichere Einstellungen: in Kategorien sortiert und mit Suchfeld": "Clearer settings: sorted into categories, with a search field",
+    "Menü und Reiter": "Menu and tabs", "Aussehen": "Appearance", "Termine und Erinnerungen": "Events and reminders", "Essen und Einkauf": "Food and shopping", "Daten und Datenschutz": "Data and privacy",
+    "Standarddauer": "Default duration", "Rezepte und Preise": "Recipes and prices", "Mahlzeiten": "Meals",
+    "Einstellung suchen …": "Search settings …", "Einstellung suchen": "Search settings", "Keine passende Einstellung gefunden.": "No matching setting found.",
+    "eingeschaltet": "on", "ausgeschaltet": "off", "Reiter sichtbar": "tabs visible", "Leiste": "Bar", "Uhr": "h", "Termin": "Event", "Lehrveranstaltung": "Class",
+    "Rezepte": "Recipes", "Automatische Sicherung jeden Tag": "Automatic backup every day", "Letzte Sicherung": "Last backup", "heute": "today", "noch keine": "none yet", "Ferien": "School holidays",
     "Ziehen: Dauer ändern": "Drag: change duration", "Serie ändern": "Change series",
     "Dieser Eintrag wiederholt sich. Die neue Dauer nur für diesen Termin oder für die ganze Serie übernehmen?": "This entry repeats. Apply the new duration only to this event or to the whole series?",
     "Ganze Serie": "Whole series", "Nur diesen Termin": "Only this event",
@@ -13806,6 +13842,12 @@ const I18N_HANDY = {
     "Teilen an OSA (Android): Text aus Mails, Chats oder Webseiten über „Teilen“ direkt als Termin oder Aufgabe übernehmen": "Compartir con OSA (Android): convierte texto de correos, chats o webs en cita o tarea con «Compartir»",
     "Termine an der Unterkante ziehen, um die Dauer zu ändern – in der Woche, bei Tag und 3 Tagen und im Stundenplan": "Arrastra el borde inferior de una cita para cambiar su duración: en semana, día, 3 días y horario",
     "Farbe pro Fach: neue Einträge eines Fachs bekommen automatisch dieselbe Farbe": "Color por asignatura: las nuevas entradas de una asignatura reciben automáticamente el mismo color",
+    "Übersichtlichere Einstellungen: in Kategorien sortiert und mit Suchfeld": "Ajustes más claros: ordenados por categorías y con buscador",
+    "Menü und Reiter": "Menú y pestañas", "Aussehen": "Apariencia", "Termine und Erinnerungen": "Citas y recordatorios", "Essen und Einkauf": "Comida y compras", "Daten und Datenschutz": "Datos y privacidad",
+    "Standarddauer": "Duración predeterminada", "Rezepte und Preise": "Recetas y precios", "Mahlzeiten": "Comidas",
+    "Einstellung suchen …": "Buscar ajuste …", "Einstellung suchen": "Buscar ajuste", "Keine passende Einstellung gefunden.": "No se encontró ningún ajuste.",
+    "eingeschaltet": "activado", "ausgeschaltet": "desactivado", "Reiter sichtbar": "pestañas visibles", "Leiste": "Barra", "Uhr": "h", "Termin": "Cita", "Lehrveranstaltung": "Clase",
+    "Rezepte": "Recetas", "Automatische Sicherung jeden Tag": "Copia automática cada día", "Letzte Sicherung": "Última copia", "heute": "hoy", "noch keine": "ninguna aún", "Ferien": "Vacaciones",
     "Ziehen: Dauer ändern": "Arrastrar: cambiar duración", "Serie ändern": "Cambiar serie",
     "Dieser Eintrag wiederholt sich. Die neue Dauer nur für diesen Termin oder für die ganze Serie übernehmen?": "Esta entrada se repite. ¿Aplicar la nueva duración solo a esta cita o a toda la serie?",
     "Ganze Serie": "Toda la serie", "Nur diesen Termin": "Solo esta cita",
@@ -13891,6 +13933,12 @@ const I18N_HANDY = {
     "Teilen an OSA (Android): Text aus Mails, Chats oder Webseiten über „Teilen“ direkt als Termin oder Aufgabe übernehmen": "Partager vers OSA (Android) : transforme un texte d'e-mail, de chat ou de site en rendez-vous ou tâche via « Partager »",
     "Termine an der Unterkante ziehen, um die Dauer zu ändern – in der Woche, bei Tag und 3 Tagen und im Stundenplan": "Tire le bord inférieur d'un rendez-vous pour changer sa durée – en vue semaine, jour, 3 jours et emploi du temps",
     "Farbe pro Fach: neue Einträge eines Fachs bekommen automatisch dieselbe Farbe": "Couleur par matière : les nouvelles entrées d'une matière reçoivent automatiquement la même couleur",
+    "Übersichtlichere Einstellungen: in Kategorien sortiert und mit Suchfeld": "Réglages plus clairs : classés par catégories, avec champ de recherche",
+    "Menü und Reiter": "Menu et onglets", "Aussehen": "Apparence", "Termine und Erinnerungen": "Rendez-vous et rappels", "Essen und Einkauf": "Repas et courses", "Daten und Datenschutz": "Données et confidentialité",
+    "Standarddauer": "Durée par défaut", "Rezepte und Preise": "Recettes et prix", "Mahlzeiten": "Repas",
+    "Einstellung suchen …": "Rechercher un réglage …", "Einstellung suchen": "Rechercher un réglage", "Keine passende Einstellung gefunden.": "Aucun réglage trouvé.",
+    "eingeschaltet": "activé", "ausgeschaltet": "désactivé", "Reiter sichtbar": "onglets visibles", "Leiste": "Barre", "Uhr": "h", "Termin": "Rendez-vous", "Lehrveranstaltung": "Cours",
+    "Rezepte": "Recettes", "Automatische Sicherung jeden Tag": "Sauvegarde automatique chaque jour", "Letzte Sicherung": "Dernière sauvegarde", "heute": "aujourd'hui", "noch keine": "aucune", "Ferien": "Vacances",
     "Ziehen: Dauer ändern": "Tirer : changer la durée", "Serie ändern": "Modifier la série",
     "Dieser Eintrag wiederholt sich. Die neue Dauer nur für diesen Termin oder für die ganze Serie übernehmen?": "Cette entrée se répète. Appliquer la nouvelle durée seulement à ce rendez-vous ou à toute la série ?",
     "Ganze Serie": "Toute la série", "Nur diesen Termin": "Seulement celui-ci",
@@ -15374,26 +15422,55 @@ function einstellungenTab() {
     einst.ferien_art === "akademisch" && !einst.ferien_ics ? h("p", { class: "mut small", style: "margin:0" }, "Ohne Adresse werden Richtwerte für die vorlesungsfreie Zeit angezeigt (Mitte Februar – Mitte April, Mitte Juli – Mitte Oktober).") : null,
     einst.ferien_art !== "aus" ? h("div", { class: "row" }, h("button", { class: "btn sm", onclick: () => ferienAktualisieren(true) }, "Jetzt aktualisieren"), ui.ferienStatus ? h("span", { class: "mut small" }, ui.ferienStatus) : null) : null);
 
-  return h("div", null, kopfZeile("Einstellungen"),
-    leistenSektion(), sektion("Angezeigte Reiter", reiter, schalter("Rezepte, Vorräte und Preise zeigen (Unterseite in Einkauf & Geld, für den Essensplan)", "rezepte_an"), schalter("Preisvorschläge für Zutaten aus dem Internet (Open Prices)", "preis_vorschlag")),
-    sektion("Sprache", feld("Sprache der Oberfläche", sp)),
-    sektion("Darstellung", feld("Farbschema", design), schalter("Reiter an der Seite (links) statt oben", "reiter_seite"), schalter("Weiche Übergänge beim Wechseln der Reiter", "reiter_animation"), feld("Schriftgröße", stufe)),
-    programmfarbenSektion(),
-    sektion("Wochenansicht", h("div", { class: "grid2" }, zahlFeld("Erste Stunde", "woche_von", 0, 22), zahlFeld("Letzte Stunde", "woche_bis", 1, 24))),
-    feiertage, ferien, wetterSektion(),
-    sektion("Termine und Essen", h("div", { class: "grid2" }, zahlFeld("Standarddauer Termin (Min.)", "termin_dauer", 5, 600, 5), zahlFeld("Dauer Lehrveranstaltung (Min.)", "stundenplan_dauer", 5, 600, 5), zahlFeld("Dauer Mahlzeit (Min.)", "mahlzeit_dauer", 5, 240, 5)),
-      h("div", { class: "grid2" }, MAHLZEITEN.map(m => { const i = h("input", { type: "time", value: einst.mahlzeit_zeiten[m] }); i.onchange = () => { aendern(() => { einst.mahlzeit_zeiten[m] = i.value || einst.mahlzeit_zeiten[m]; }, true); }; return feld(m, i); })),
-      feld("Farbe für Essen", essenFarbe)),
-    sektion("Kategorien und Farben", kat, h("div", { class: "row" }, neuKat, h("button", { class: "btn", onclick: katAdd }, "Hinzufügen"))),
-    sektion("Erinnerungen", schalter("Erinnerungen anzeigen", "erinnerung_an"), benachrichtigungSchalter(), schalter("Auch für Mahlzeiten", "erinnerung_essen"), zahlFeld("Minuten vorher", "erinnerung_minuten", 0, 240, 5),
-      h("p", { class: "mut small", style: "margin:0" }, "Erinnerungen erscheinen, solange das Fenster geöffnet ist.")),
-    importSektion(),
-    datenSektion(), sektion("Datenschutz", datenschutzInhalt()),
-    sektion("Über OSA", h("p", { class: "mut small", style: "margin:0" }, R(`OSA – Open Student Agenda · ${t("Version")} ${APP_VERSION}`)), h("div", { class: "row" }, h("button", { class: "btn", onclick: () => wasIstNeuDialog("") }, "Was ist neu"))),
-    einstStatus(),
-    h("div", { class: "row", style: "margin-top:14px" }, h("button", { class: "btn", onclick: () => bestaetigen("Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Einträge bleiben erhalten.", () => aendern(() => {
-      const e = einstellungenLaden({}); e.willkommen_gezeigt = true; einst = e; daten.einstellungen = e; spracheSetzen(e.sprache); ui.gespeichert = new Date(); pfSchema = null; ferienAktualisieren(true); wetterAktualisieren(true);
-    }), "Zurücksetzen") }, "Auf Standard zurücksetzen")));
+  /* Die Einstellungen sind in Kategorien aufgeteilt: Übersicht (Handy) bzw. Liste links (PC), dazu ein Suchfeld */
+  const zuruecksetzen = h("div", { class: "row" }, h("button", { class: "btn", onclick: () => bestaetigen("Alle Einstellungen auf die Standardwerte zurücksetzen? Deine Einträge bleiben erhalten.", () => aendern(() => {
+    const e = einstellungenLaden({}); e.willkommen_gezeigt = true; einst = e; daten.einstellungen = e; spracheSetzen(e.sprache); ui.gespeichert = new Date(); pfSchema = null; ferienAktualisieren(true); wetterAktualisieren(true);
+  }), "Zurücksetzen") }, "Auf Standard zurücksetzen"));
+  const KATS = [
+    ["reiter", "🧭", "Menü und Reiter", () => [leistenSektion(), sektion("Angezeigte Reiter", reiter)]],
+    ["aussehen", "🎨", "Aussehen", () => [sektion("Sprache", feld("Sprache der Oberfläche", sp)),
+      sektion("Darstellung", feld("Farbschema", design), schalter("Reiter an der Seite (links) statt oben", "reiter_seite"), schalter("Weiche Übergänge beim Wechseln der Reiter", "reiter_animation"), feld("Schriftgröße", stufe)),
+      programmfarbenSektion()]],
+    ["kalender", "📅", "Kalender", () => [sektion("Wochenansicht", h("div", { class: "grid2" }, zahlFeld("Erste Stunde", "woche_von", 0, 22), zahlFeld("Letzte Stunde", "woche_bis", 1, 24))),
+      feiertage, ferien, wetterSektion(), sektion("Kategorien und Farben", kat, h("div", { class: "row" }, neuKat, h("button", { class: "btn", onclick: katAdd }, "Hinzufügen"))), importSektion()]],
+    ["termine", "⏰", "Termine und Erinnerungen", () => [sektion("Standarddauer", h("div", { class: "grid2" }, zahlFeld("Standarddauer Termin (Min.)", "termin_dauer", 5, 600, 5), zahlFeld("Dauer Lehrveranstaltung (Min.)", "stundenplan_dauer", 5, 600, 5))),
+      sektion("Erinnerungen", schalter("Erinnerungen anzeigen", "erinnerung_an"), benachrichtigungSchalter(), schalter("Auch für Mahlzeiten", "erinnerung_essen"), zahlFeld("Minuten vorher", "erinnerung_minuten", 0, 240, 5),
+        h("p", { class: "mut small", style: "margin:0" }, "Erinnerungen erscheinen, solange das Fenster geöffnet ist."))]],
+    ["essen", "🍝", "Essen und Einkauf", () => [sektion("Rezepte und Preise", schalter("Rezepte, Vorräte und Preise zeigen (Unterseite in Einkauf & Geld, für den Essensplan)", "rezepte_an"), schalter("Preisvorschläge für Zutaten aus dem Internet (Open Prices)", "preis_vorschlag")),
+      sektion("Mahlzeiten", zahlFeld("Dauer Mahlzeit (Min.)", "mahlzeit_dauer", 5, 240, 5),
+        h("div", { class: "grid2" }, MAHLZEITEN.map(m => { const i = h("input", { type: "time", value: einst.mahlzeit_zeiten[m] }); i.onchange = () => { aendern(() => { einst.mahlzeit_zeiten[m] = i.value || einst.mahlzeit_zeiten[m]; }, true); }; return feld(m, i); })),
+        feld("Farbe für Essen", essenFarbe))]],
+    ["daten", "💾", "Daten und Datenschutz", () => [datenSektion(), sektion("Datenschutz", datenschutzInhalt()),
+      sektion("Über OSA", h("p", { class: "mut small", style: "margin:0" }, R(`OSA – Open Student Agenda · ${t("Version")} ${APP_VERSION}`)), h("div", { class: "row" }, h("button", { class: "btn", onclick: () => wasIstNeuDialog("") }, "Was ist neu")), zuruecksetzen)]]
+  ];
+  if (ui.einstKat && !KATS.some(k => k[0] === ui.einstKat)) ui.einstKat = null;
+  const aktiv = ui.einstKat || KATS[0][0];   // PC: ohne Auswahl die erste Kategorie zeigen; Handy: ohne Auswahl die Übersicht
+  const wahl = k => { ui.einstKat = k; ui.einstSuche = ""; uiSpeichern(); render(); window.scrollTo(0, 0); };
+  const nav = h("nav", { class: "einst-nav", "aria-label": "Einstellungen" }, KATS.map(([k, ic, titel]) =>
+    h("button", { class: "einst-kat" + (aktiv === k ? " on" : ""), onclick: () => wahl(k) },
+      h("span", { class: "ic", "aria-hidden": "true" }, ic), h("span", { class: "tx" }, h("b", null, titel), h("span", { class: "mut small" }, R(einstZusammenfassung(k)))), h("span", { class: "pfeil", "aria-hidden": "true" }, "›"))));
+  const inhalt = h("div", { class: "einst-inhalt" });
+  for (const [k, , titel, fn] of KATS) inhalt.append(h("div", { class: "einst-gruppe", "data-kat": k, hidden: k !== aktiv },
+    h("div", { class: "einst-kopf" }, h("button", { class: "btn sm einst-zurueck", onclick: () => wahl(null) }, R("‹ " + t("Einstellungen"))), h("h2", null, titel)), fn().filter(Boolean)));
+  inhalt.append(einstStatus() || h("span"));
+  const wurzel = h("div", { class: "einst" + (ui.einstKat ? " hat-kat" : "") }, nav, inhalt);
+  /* Suche: blendet passende Abschnitte aus allen Kategorien ein, ohne neu zu zeichnen (Tastatur bleibt offen) */
+  const suche = h("input", { type: "search", class: "einst-suche", placeholder: "Einstellung suchen …", value: ui.einstSuche || "", "aria-label": "Einstellung suchen" });
+  const keinTreffer = h("p", { class: "empty", hidden: true }, "Keine passende Einstellung gefunden.");
+  const filtern = () => {
+    const q = suche.value.trim().toLowerCase(); ui.einstSuche = suche.value;
+    wurzel.classList.toggle("sucht", !!q); let treffer = 0;
+    for (const g of inhalt.querySelectorAll(".einst-gruppe")) {
+      let inGruppe = 0;
+      for (const s of g.children) { if (s.classList.contains("einst-kopf")) continue; const passt = !q || s.textContent.toLowerCase().includes(q); s.hidden = !passt; if (passt) inGruppe++; }
+      g.hidden = q ? !inGruppe : g.dataset.kat !== aktiv; treffer += inGruppe;
+    }
+    keinTreffer.hidden = !q || treffer > 0;
+  };
+  suche.addEventListener("input", filtern);
+  inhalt.prepend(keinTreffer);
+  if (ui.einstSuche) setTimeout(filtern, 0);
+  return h("div", null, kopfZeile("Einstellungen"), suche, wurzel);
 }
 
 /* ---------- Programmfarben ---------- */
@@ -15936,7 +16013,7 @@ function datenschutzDialog() { dialog("Datenschutz", datenschutzInhalt(), [{ tex
 function willkommen() {
   if (daten.aufgaben.length || daten.essen.length || Object.keys(daten.rezepte).length || daten.budget.length) return null;
   return h("div", { class: "card", style: "margin-bottom:14px" }, h("h3", null, "Willkommen!"), h("p", { style: "margin:0 0 10px" }, "Schreib oben bei „Schnell hinzufügen“ einen Satz wie „Mathe-Klausur Freitag 14 Uhr“ oder nutze den Reiter „+“, um deinen ersten Eintrag anzulegen – oder hole deine Daten aus der Desktop-Version: Einstellungen › Daten und Export › Sicherung laden (osa.json)."),
-    h("button", { class: "btn", onclick: () => { ui.tab = "einstellungen"; render(); } }, "Zu den Einstellungen"));
+    h("button", { class: "btn", onclick: () => { ui.tab = "einstellungen"; ui.einstKat = "daten"; render(); } }, "Zu den Einstellungen"));
 }
 function tabInhalt() {
   if (ui.tab === "einkauf" || ui.tab === "budget") ui.tab = "geld";
@@ -16083,6 +16160,26 @@ function wetterSektion() {
   return sektion("Wetter", h("label", { class: "row", style: "cursor:pointer" }, an, "Wetter in der Wochenansicht zeigen"), feld("Ort", ort),
     h("p", { class: "mut small", style: "margin:0" }, R((ui.wetter.name && ["frisch", "cache", "alt"].includes(ui.wetter.status) ? ui.wetter.name + ": " : "") + t(status))),
     h("p", { class: "mut small", style: "margin:0" }, "Die Vorhersage kommt kostenlos von Open-Meteo. Dafür wird der Ortsname aus diesem Feld ins Internet geschickt, sonst nichts."));
+}
+/* Kurzinfo unter jeder Kategorie in der Übersicht der Einstellungen */
+function einstZusammenfassung(k) {
+  const an = x => t(x ? "eingeschaltet" : "ausgeschaltet");
+  try {
+    if (k === "reiter") {
+      const sichtbar = sichtbareReiter().filter(([r]) => r !== "plus").length, namen = leistenAuswahl().map(r => t((REITER.find(x => x[0] === r) || [r, r])[1]));
+      return `${sichtbar} ${t("Reiter sichtbar")} · ${t("Leiste")}: ${namen.join(", ") || "–"}`;
+    }
+    if (k === "aussehen") return [t((DESIGN_AUSWAHL.find(d => d[0] === einst.design) || ["", "Automatisch (System)"])[1]), SPRACHEN[einst.sprache] || "", t(einst.schrift_stufe || "Normal")].filter(Boolean).join(" · ");
+    if (k === "kalender") { const land = feiertageLand(); return `${einst.woche_von}–${einst.woche_bis} ${t("Uhr")} · ${t("Feiertage")}: ${land === "aus" ? an(false) : land} · ${t("Ferien")}: ${an(einst.ferien_art !== "aus")}`; }
+    if (k === "termine") return `${t("Termin")} ${einst.termin_dauer} min · ${t("Lehrveranstaltung")} ${einst.stundenplan_dauer} min · ${t("Erinnerungen")}: ${an(einst.erinnerung_an)}`;
+    if (k === "essen") return `${t("Rezepte")}: ${an(einst.rezepte_an)} · ${t("Preisvorschläge")}: ${an(einst.preis_vorschlag !== false)}`;
+    if (k === "daten") {
+      if (pcApi()) return t("Automatische Sicherung jeden Tag");
+      const letzte = localStorage.getItem(DOWNLOAD_KEY);
+      return `${t("Letzte Sicherung")}: ${letzte ? (letzte === iso(heute()) ? t("heute") : deDatum(letzte)) : t("noch keine")}`;
+    }
+  } catch (e) { }
+  return "";
 }
 function einstStatus() {
   const g = ui.gespeichert; if (!g) return null;
