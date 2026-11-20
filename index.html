@@ -1828,7 +1828,10 @@ function rasterBauen(montag, quelleFn, von, bis, klickNeu, opt = {}) {
       h("div", { class: "dn" }, R(kurzTag(i))), h("div", { class: "dd" }, R(tag.getDate())), opt.wetter && ui.wetter.tage[iso(tag)] ? h("div", { class: "wt" }, R(`${wetterSymbol(ui.wetter.tage[iso(tag)].code)} ${ui.wetter.tage[iso(tag)].max}°/${ui.wetter.tage[iso(tag)].min}°`)) : null, fer ? h("div", { class: "fer", rtitle: fer }, R(fer)) : null));
     const items = vorItems[i], tagsueber = h("div"), col = h("div", { class: "wk-col" + (fer ? " fer" : "") + (iso(tag) === heut ? " heute" : ""), style: `height:${gesamt}px` });
     for (let s = von; s < bis; s++) col.append(h("div", { class: "hl", style: `top:${(s - von) * hh}px` }));
-    cols.push({ el: col, tag }); if (opt.drag) dragAnbinden(col, tag, von, hh); else if (opt.hover) dragAnbinden(col, tag, von, hh, true, einst.stundenplan_dauer);
+    cols.push({ el: col, tag });
+    if (opt.drag) dragAnbinden(col, tag, von, hh);
+    else if (opt.verschieben) dragAnbinden(col, tag, von, hh, false, einst.stundenplan_dauer, opt.neuGezogen);   // Stundenplan: Aufziehen = neue Lehrveranstaltung
+    else if (opt.hover) dragAnbinden(col, tag, von, hh, true, einst.stundenplan_dauer);
     col.addEventListener("click", ev => {
       if (unterdrueckeKlick || (ev.target !== col && !ev.target.classList.contains("hl"))) return;
       const r = col.getBoundingClientRect(), min = Math.round(((ev.clientY - r.top) / hh * 60 + von * 60) / 15) * 15;
@@ -1837,7 +1840,7 @@ function rasterBauen(montag, quelleFn, von, bis, klickNeu, opt = {}) {
     const zeitig = []; col._evs = [];
     for (const it of items) {
       const z = zeitVon(it);
-      if (z === null) { const c = chip(it); c.addEventListener("pointerdown", e => { if (opt.drag && e.target.tagName !== "INPUT") verschiebenStarten(e, it, cols, von, hh, true); }); tagsueber.append(c); } else zeitig.push({ it, b: minutenVon(z), e: Math.min(minutenVon(z) + dauerVon(it), 1440) });
+      if (z === null) { const c = chip(it); c.addEventListener("pointerdown", e => { if ((opt.drag || opt.verschieben) && e.target.tagName !== "INPUT") verschiebenStarten(e, it, cols, von, hh, true); }); tagsueber.append(c); } else zeitig.push({ it, b: minutenVon(z), e: Math.min(minutenVon(z) + dauerVon(it), 1440) });
     }
     for (const it of uebertrag[i]) zeitig.push({ it, b: 0, e: Math.min(minutenVon(zeitVon(it)) + dauerVon(it) - 1440, 1440), fort: true });
     zeitig.sort((a, b) => a.b - b.b || b.e - a.e);
@@ -1859,7 +1862,7 @@ function rasterBauen(montag, quelleFn, von, bis, klickNeu, opt = {}) {
       const zeitText = x.fort ? t("bis ") + minutenText(x.e) : minutenText(x.b) + (x.it.v.raum ? " · " + x.it.v.raum : "");
       col._evs.push({ top, unten: top + hoehe, b: x.b, titel: (x.fort ? "↳ " : "") + titelVon(x.it) });
       col.append(h("div", { class: "ev" + (erl ? " erl" : "") + (x.fort ? " fort" : ""), style: `top:${top}px;height:${hoehe}px;left:calc(${x.c * w}% + 1px);width:calc(${w}% - 3px);background:${farbeVon(x.it.v, x.it.art)}`,
-        rtitle: x.fort ? `${titelVon(x.it)} (${t("vom Vortag")}, ${t("bis ")}${minutenText(x.e)})` : `${minutenText(x.b)} ${titelVon(x.it)}`, onclick: ev => { ev.stopPropagation(); if (unterdrueckeKlick) return; eintragOeffnen(x.it); }, onpointerdown: ev => { if (opt.drag && !x.fort) verschiebenStarten(ev, x.it, cols, von, hh); } },
+        rtitle: x.fort ? `${titelVon(x.it)} (${t("vom Vortag")}, ${t("bis ")}${minutenText(x.e)})` : `${minutenText(x.b)} ${titelVon(x.it)}`, onclick: ev => { ev.stopPropagation(); if (unterdrueckeKlick) return; eintragOeffnen(x.it); }, onpointerdown: ev => { if ((opt.drag || opt.verschieben) && !x.fort) verschiebenStarten(ev, x.it, cols, von, hh); } },
         h("b", null, R((x.fort ? "↳ " : "") + titelVon(x.it))), hoehe > 34 ? R(zeitText) : null));
     }
     if (iso(tag) === heut) col.append(h("div", { class: "now", "data-now": "1" }));
@@ -2065,22 +2068,32 @@ function stundenplanTab() {
   let von = 8, bis = 18;
   for (const tag of lv) for (const v of tag) if (v.uhrzeit) { von = Math.min(von, Math.floor(minutenVon(v.uhrzeit) / 60)); bis = Math.max(bis, Math.ceil((minutenVon(v.uhrzeit) + (v.dauer || einst.stundenplan_dauer)) / 60)); }
   const quelle = tag => stundenplanWoche(daten, montag)[diffDays(tag, montag)].map(v => ({ art: "termin", v, tag }));
-  const wk = rasterBauen(montag, quelle, von, Math.min(bis, 24), (tag, uhr) => eintragDialog({ art: "termin", tag, vorgabe: { uhrzeit: uhr, datum: iso(tag), wiederholung: "wöchentlich" } }), { hover: true });
+  /* Klick ins Raster: direkt eine Lehrveranstaltung an dieser Stelle anlegen (Dauer aus den Einstellungen) */
+  const wk = rasterBauen(montag, quelle, von, Math.min(bis, 24), (tag, uhr) => lvDialog({ wochentag: wochentagNr(tag), beginn: uhr, ab: montag }),
+    { verschieben: true, neuGezogen: (tag, start, dauer) => lvDialog({ wochentag: wochentagNr(tag), beginn: minutenText(start), dauerMin: dauer, ab: montag }) });
   const so = addDays(montag, 6);
   return h("div", null,
     h("div", { class: "row sb", style: "margin-bottom:14px" },
       h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { ui.spPlan = addDays(ui.spPlan, -7); render(); } }, "‹"), h("button", { class: "btn", onclick: () => { ui.spPlan = heute(); render(); } }, "Heute"),
         h("button", { class: "btn", onclick: () => { ui.spPlan = addDays(ui.spPlan, 7); render(); } }, "›"), h("h2", { style: "margin-left:6px" }, "Stundenplan"), h("span", { class: "mut" }, R(`${deKurz(montag)} – ${deKurz(so)}`))),
-      h("button", { class: "btn pri", onclick: lvDialog }, "+ Lehrveranstaltung")),
+      h("button", { class: "btn pri", onclick: () => lvDialog({ ab: montag }) }, "+ Lehrveranstaltung")),
     wk, lvListe());
 }
-function lvDialog() {
+function lvDialog(vorgabe = {}) {
   const fach = h("input", { type: "text", list: "fl", placeholder: "z. B. Analysis I" });
   const dl = h("datalist", { id: "fl" }); for (const f of Object.keys(daten.faecher)) dl.append(h("option", { value: f }));
-  const tag = auswahl(WOCHENTAGE.map((w, i) => [i, wochentagName(i)]), 0, true);
-  const von = h("input", { type: "time", value: "08:30" }), bisZ = h("input", { type: "time", value: "10:00" });
+  const tag = auswahl(WOCHENTAGE.map((w, i) => [i, wochentagName(i)]), vorgabe.wochentag || 0, true);
+  /* Ende = Beginn + "Dauer Lehrveranstaltung" aus den Einstellungen; folgt dem Beginn, bis man es selbst ändert */
+  const dauer = Math.max(5, +einst.stundenplan_dauer || 90), endeZu = b => minutenText(Math.min(minutenVon(b) + dauer, 23 * 60 + 59));
+  const beginn = vorgabe.beginn || "08:30";
+  const bisStart = vorgabe.dauerMin ? minutenText(Math.min(minutenVon(beginn) + vorgabe.dauerMin, 23 * 60 + 59)) : endeZu(beginn);   // aufgezogen: genau die gezogene Länge
+  const von = h("input", { type: "time", value: beginn }), bisZ = h("input", { type: "time", value: bisStart });
+  let endeSelbst = !!vorgabe.dauerMin;
+  bisZ.addEventListener("input", () => { endeSelbst = true; });
+  von.addEventListener("input", () => { if (!endeSelbst && von.value) bisZ.value = endeZu(von.value); });
   const raum = h("input", { type: "text" }), doz = h("input", { type: "text" });
-  const ersteDatum = h("input", { type: "date", value: iso(montagVon(heute())) }), ende = h("input", { type: "date" });
+  const ersteDatum = h("input", { type: "date", value: iso(montagVon(vorgabe.ab || heute())) }), ende = h("input", { type: "date" });
+  setTimeout(() => fach.focus(), 50);
   dialog("Lehrveranstaltung anlegen", [dl, feld("Fach / Veranstaltung", fach), h("div", { class: "grid2" }, feld("Wochentag", tag), feld("Beginn", von), feld("Ende", bisZ)),
     h("div", { class: "grid2" }, feld("Raum", raum), feld("Dozent", doz)), h("div", { class: "grid2" }, feld("Erste Woche ab", ersteDatum), feld("Semesterende (optional)", ende))],
     [{ text: "Abbrechen" }, { text: "Anlegen", art: "pri", fn: () => {
@@ -3050,7 +3063,7 @@ function ghostZeigen(col, von, bisMin, v0, hh, hover, text) {
   g.style.top = (von / 60 - v0) * hh + "px"; g.style.height = Math.max((bisMin - von) / 60 * hh, 14) + "px";
   const tx = text || `${minutenText(von)} – ${minutenText(bisMin)}`; if (g.textContent !== tx) g.textContent = tx;
 }
-function dragAnbinden(col, tag, von, hh, nurHover = false, dauerMin = einst.termin_dauer) {
+function dragAnbinden(col, tag, von, hh, nurHover = false, dauerMin = einst.termin_dauer, neuFn = null) {   // neuFn(tag, startMinute, dauer): eigener Dialog statt „Neuer Termin“
   const minuteAn = (y, runden) => { const r = col.getBoundingClientRect(), m = von * 60 + (y - r.top) / hh * 60; return runden ? Math.round(m / 15) * 15 : Math.floor(m / 15) * 15; };
   const leer0 = ev => ev.target === col || ev.target.classList.contains("hl") || ev.target.classList.contains("dghost");
   col.addEventListener("pointermove", ev => {
@@ -3073,7 +3086,11 @@ function dragAnbinden(col, tag, von, hh, nurHover = false, dauerMin = einst.term
     };
     const hoch = () => {
       document.removeEventListener("pointermove", bew); document.removeEventListener("pointerup", hoch); ghostWeg();
-      if (bewegt && zielWert) { unterdrueckeKlick = true; setTimeout(() => { unterdrueckeKlick = false; }, 60); eintragDialog({ tag, art: "termin", vorgabe: { uhrzeit: minutenText(zielWert[0]), datum: iso(tag), dauer: zielWert[1] } }); }
+      if (bewegt && zielWert) {
+        unterdrueckeKlick = true; setTimeout(() => { unterdrueckeKlick = false; }, 60);
+        if (neuFn) neuFn(tag, zielWert[0], zielWert[1]);
+        else eintragDialog({ tag, art: "termin", vorgabe: { uhrzeit: minutenText(zielWert[0]), datum: iso(tag), dauer: zielWert[1] } });
+      }
     };
     document.addEventListener("pointermove", bew); document.addEventListener("pointerup", hoch);
   });
