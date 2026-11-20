@@ -336,6 +336,12 @@ input[type=checkbox]:checked::before{transform:rotate(-45deg) scale(1)}
 /* Handy: untere Menüleiste statt Reiterzeile */
 .handyleiste{display:none}
 .mehr-gitter{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.geteilt-text{white-space:pre-wrap;word-break:break-word;max-height:30vh;overflow:auto;padding:10px 12px;border-radius:10px;background:var(--surf2);font-size:14px}
+/* Dauer per Ziehen: Griff an der Unterkante eines Termins */
+.ev-griff{position:absolute;left:0;right:0;bottom:0;height:9px;cursor:ns-resize;touch-action:none;z-index:2}
+.ev:hover .ev-griff::after,.ev.ziehen .ev-griff::after{content:"";position:absolute;left:50%;bottom:2px;width:22px;height:3px;margin-left:-11px;border-radius:2px;background:rgba(0,0,0,.35)}
+.ev.ziehen{overflow:visible;z-index:6;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.ev-dauer{position:absolute;left:2px;bottom:-24px;background:var(--fg);color:var(--bg);font-size:11px;font-weight:600;padding:2px 7px;border-radius:7px;white-space:nowrap;z-index:9;pointer-events:none}
 .update-hinweis{position:fixed;left:50%;transform:translateX(-50%);top:max(12px,env(safe-area-inset-top));z-index:70;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 24px);padding:10px 14px;border-radius:14px;background:var(--surf);color:var(--fg);border:1px solid var(--acc);box-shadow:0 8px 30px rgba(0,0,0,.25);font-weight:600}
 .neu-liste{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .qr-bild{max-width:100%;height:auto;image-rendering:pixelated;border-radius:12px;background:#fff}
@@ -13633,8 +13639,13 @@ const SPRACHEN = { de: "Deutsch", en: "English", es: "Español", fr: "Français"
 const I18N = JSON.parse(document.getElementById("i18n-daten").textContent);
 /* ---------- Version und „Was ist neu“ ----------
    Bei jedem Update: APP_VERSION erhöhen und oben in NEUIGKEITEN einen Eintrag ergänzen. */
-const APP_VERSION = "2026.11.20b";
+const APP_VERSION = "2026.11.20c";
 const NEUIGKEITEN = [
+  { version: "2026.11.20c", punkte: [
+    "Teilen an OSA (Android): Text aus Mails, Chats oder Webseiten über „Teilen“ direkt als Termin oder Aufgabe übernehmen",
+    "Termine an der Unterkante ziehen, um die Dauer zu ändern – in der Woche, bei Tag und 3 Tagen und im Stundenplan",
+    "Farbe pro Fach: neue Einträge eines Fachs bekommen automatisch dieselbe Farbe"
+  ] },
   { version: "2026.11.20b", punkte: [
     "Neue Kalenderansichten „Tag“ und „3 Tage“ – ideal am Handy; ein Klick auf einen Tageskopf öffnet den Tag",
     "Automatische Sicherung: Die OSA.exe speichert jeden Tag eine Sicherungsdatei, am Handy erinnert eine Karte auf „Heute“ ans Sichern"
@@ -13707,6 +13718,15 @@ const I18N_HANDY = {
     "Zu schnell? Mit „Pause“ bleibt ein Code stehen, mit ‹ › blätterst du selbst. Beim Empfangen siehst du, welche Teile noch fehlen.": "Too fast? “Pause” keeps a code on screen, ‹ › lets you flip through yourself. When receiving you can see which parts are still missing.",
     "Beim Empfangen werden die Daten auf dem empfangenden Gerät ersetzt – mit „Rückgängig“ holst du den alten Stand zurück.": "Receiving replaces the data on the receiving device – “Undo” brings back the previous state.",
     "Fertig": "Done", "Es fehlt noch": "Still missing",
+    "Teilen an OSA (Android): Text aus Mails, Chats oder Webseiten über „Teilen“ direkt als Termin oder Aufgabe übernehmen": "Share to OSA (Android): turn text from emails, chats or websites into an event or task via “Share”",
+    "Termine an der Unterkante ziehen, um die Dauer zu ändern – in der Woche, bei Tag und 3 Tagen und im Stundenplan": "Drag the bottom edge of an event to change its duration – in week, day, 3-day and timetable view",
+    "Farbe pro Fach: neue Einträge eines Fachs bekommen automatisch dieselbe Farbe": "Colour per subject: new entries of a subject automatically get the same colour",
+    "Ziehen: Dauer ändern": "Drag: change duration", "Serie ändern": "Change series",
+    "Dieser Eintrag wiederholt sich. Die neue Dauer nur für diesen Termin oder für die ganze Serie übernehmen?": "This entry repeats. Apply the new duration only to this event or to the whole series?",
+    "Ganze Serie": "Whole series", "Nur diesen Termin": "Only this event",
+    "An OSA geteilt": "Shared to OSA", "Erkannt": "Recognised", "Als Termin": "As event", "Als Aufgabe / Frist": "As task / deadline",
+    "Mach daraus einen Eintrag. Titel, Datum und Uhrzeit werden – wenn möglich – erkannt, der ganze Text landet in der Notiz.": "Turn it into an entry. Title, date and time are recognised where possible; the full text goes into the note.",
+    "Farbe für alle Einträge dieses Fachs": "Colour for all entries of this subject",
     "Tag": "Day", "3 Tage": "3 days", "Zur Woche": "Back to week", "Diesen Tag ansehen": "View this day",
     "Neue Kalenderansichten „Tag“ und „3 Tage“ – ideal am Handy; ein Klick auf einen Tageskopf öffnet den Tag": "New calendar views “Day” and “3 days” – great on phones; tapping a day header opens that day",
     "Automatische Sicherung: Die OSA.exe speichert jeden Tag eine Sicherungsdatei, am Handy erinnert eine Karte auf „Heute“ ans Sichern": "Automatic backup: OSA.exe saves a backup file every day; on phones a card on “Today” reminds you to back up",
@@ -13783,6 +13803,15 @@ const I18N_HANDY = {
     "Zu schnell? Mit „Pause“ bleibt ein Code stehen, mit ‹ › blätterst du selbst. Beim Empfangen siehst du, welche Teile noch fehlen.": "¿Demasiado rápido? Con «Pausa» un código se queda fijo y con ‹ › pasas tú mismo. Al recibir ves qué partes faltan.",
     "Beim Empfangen werden die Daten auf dem empfangenden Gerät ersetzt – mit „Rückgängig“ holst du den alten Stand zurück.": "Al recibir se reemplazan los datos del dispositivo receptor; con «Deshacer» recuperas el estado anterior.",
     "Fertig": "Listo", "Es fehlt noch": "Falta todavía",
+    "Teilen an OSA (Android): Text aus Mails, Chats oder Webseiten über „Teilen“ direkt als Termin oder Aufgabe übernehmen": "Compartir con OSA (Android): convierte texto de correos, chats o webs en cita o tarea con «Compartir»",
+    "Termine an der Unterkante ziehen, um die Dauer zu ändern – in der Woche, bei Tag und 3 Tagen und im Stundenplan": "Arrastra el borde inferior de una cita para cambiar su duración: en semana, día, 3 días y horario",
+    "Farbe pro Fach: neue Einträge eines Fachs bekommen automatisch dieselbe Farbe": "Color por asignatura: las nuevas entradas de una asignatura reciben automáticamente el mismo color",
+    "Ziehen: Dauer ändern": "Arrastrar: cambiar duración", "Serie ändern": "Cambiar serie",
+    "Dieser Eintrag wiederholt sich. Die neue Dauer nur für diesen Termin oder für die ganze Serie übernehmen?": "Esta entrada se repite. ¿Aplicar la nueva duración solo a esta cita o a toda la serie?",
+    "Ganze Serie": "Toda la serie", "Nur diesen Termin": "Solo esta cita",
+    "An OSA geteilt": "Compartido con OSA", "Erkannt": "Reconocido", "Als Termin": "Como cita", "Als Aufgabe / Frist": "Como tarea / plazo",
+    "Mach daraus einen Eintrag. Titel, Datum und Uhrzeit werden – wenn möglich – erkannt, der ganze Text landet in der Notiz.": "Conviértelo en una entrada. Título, fecha y hora se reconocen si es posible; el texto completo va a la nota.",
+    "Farbe für alle Einträge dieses Fachs": "Color para todas las entradas de esta asignatura",
     "Tag": "Día", "3 Tage": "3 días", "Zur Woche": "Volver a la semana", "Diesen Tag ansehen": "Ver este día",
     "Neue Kalenderansichten „Tag“ und „3 Tage“ – ideal am Handy; ein Klick auf einen Tageskopf öffnet den Tag": "Nuevas vistas «Día» y «3 días»: ideales en el móvil; al pulsar la cabecera de un día se abre ese día",
     "Automatische Sicherung: Die OSA.exe speichert jeden Tag eine Sicherungsdatei, am Handy erinnert eine Karte auf „Heute“ ans Sichern": "Copia automática: OSA.exe guarda cada día un archivo de copia; en el móvil una tarjeta en «Hoy» te recuerda hacer copia",
@@ -13859,6 +13888,15 @@ const I18N_HANDY = {
     "Zu schnell? Mit „Pause“ bleibt ein Code stehen, mit ‹ › blätterst du selbst. Beim Empfangen siehst du, welche Teile noch fehlen.": "Trop rapide ? « Pause » fige un code, ‹ › te permet de feuilleter toi-même. À la réception, tu vois les parties manquantes.",
     "Beim Empfangen werden die Daten auf dem empfangenden Gerät ersetzt – mit „Rückgängig“ holst du den alten Stand zurück.": "La réception remplace les données de l'appareil récepteur – « Annuler » rétablit l'état précédent.",
     "Fertig": "Terminé", "Es fehlt noch": "Il manque encore",
+    "Teilen an OSA (Android): Text aus Mails, Chats oder Webseiten über „Teilen“ direkt als Termin oder Aufgabe übernehmen": "Partager vers OSA (Android) : transforme un texte d'e-mail, de chat ou de site en rendez-vous ou tâche via « Partager »",
+    "Termine an der Unterkante ziehen, um die Dauer zu ändern – in der Woche, bei Tag und 3 Tagen und im Stundenplan": "Tire le bord inférieur d'un rendez-vous pour changer sa durée – en vue semaine, jour, 3 jours et emploi du temps",
+    "Farbe pro Fach: neue Einträge eines Fachs bekommen automatisch dieselbe Farbe": "Couleur par matière : les nouvelles entrées d'une matière reçoivent automatiquement la même couleur",
+    "Ziehen: Dauer ändern": "Tirer : changer la durée", "Serie ändern": "Modifier la série",
+    "Dieser Eintrag wiederholt sich. Die neue Dauer nur für diesen Termin oder für die ganze Serie übernehmen?": "Cette entrée se répète. Appliquer la nouvelle durée seulement à ce rendez-vous ou à toute la série ?",
+    "Ganze Serie": "Toute la série", "Nur diesen Termin": "Seulement celui-ci",
+    "An OSA geteilt": "Partagé vers OSA", "Erkannt": "Reconnu", "Als Termin": "En rendez-vous", "Als Aufgabe / Frist": "En tâche / échéance",
+    "Mach daraus einen Eintrag. Titel, Datum und Uhrzeit werden – wenn möglich – erkannt, der ganze Text landet in der Notiz.": "Fais-en une entrée. Titre, date et heure sont reconnus si possible ; le texte complet va dans la note.",
+    "Farbe für alle Einträge dieses Fachs": "Couleur pour toutes les entrées de cette matière",
     "Tag": "Jour", "3 Tage": "3 jours", "Zur Woche": "Retour à la semaine", "Diesen Tag ansehen": "Voir ce jour",
     "Neue Kalenderansichten „Tag“ und „3 Tage“ – ideal am Handy; ein Klick auf einen Tageskopf öffnet den Tag": "Nouvelles vues « Jour » et « 3 jours » – idéales sur mobile ; toucher l'en-tête d'un jour ouvre ce jour",
     "Automatische Sicherung: Die OSA.exe speichert jeden Tag eine Sicherungsdatei, am Handy erinnert eine Karte auf „Heute“ ans Sichern": "Sauvegarde automatique : OSA.exe enregistre un fichier chaque jour ; sur mobile une carte sur « Aujourd'hui » rappelle de sauvegarder",
@@ -14161,6 +14199,17 @@ function farbwahl(start, onwahl) {
   zeichnen(); return box;
 }
 const farbeVon = (v, art) => v.farbe || (art === "essen" ? einst.farben.Essen : einst.farben[v.kategorie]) || "#e2e4e8";
+/* Farbe pro Fach: gemerkt in daten.faecher[fach].farbe; sonst die Farbe des neuesten Eintrags mit diesem Fach */
+function fachFarbe(fach) {
+  fach = String(fach || "").trim(); if (!fach) return "";
+  const f = daten.faecher[fach]; if (f && f.farbe) return f.farbe;
+  for (let i = daten.aufgaben.length - 1; i >= 0; i--) { const a = daten.aufgaben[i]; if (a.fach === fach && a.farbe) return a.farbe; }
+  return "";
+}
+function fachFarbeMerken(fach, farbe) {   // nur innerhalb von aendern() aufrufen
+  fach = String(fach || "").trim(); if (!fach || !farbe) return;
+  daten.faecher[fach] = Object.assign({ ziel: 0 }, daten.faecher[fach] || {}, { farbe });
+}
 
 /* ---------- Eintrag-Dialog (Aufgabe / Termin / Essen) ---------- */
 function eintragDialog(o = {}) {
@@ -14173,7 +14222,8 @@ function eintragDialog(o = {}) {
   const kopf = h("div");
   const body = h("div", { class: "body" });
   const kategorien = einst.kategorien.slice(); if (v.kategorie && !kategorien.includes(v.kategorie)) kategorien.push(v.kategorie);
-  let farbe = v.farbe || "";
+  let farbe = v.farbe || "", farbeSelbst = !!v.farbe;   // farbeSelbst: Nutzer hat selbst eine Farbe gewählt → nicht automatisch ändern
+  if (!o.v && !farbe) farbe = fachFarbe(terminVorgabe.fach || "");
   const wiederholt = (q.wiederholung || v.wiederholung || "keine") !== "keine";
   const dtag = o.tag ? iso(o.tag) : (terminVorgabe.datum || iso(ui.tag));
 
@@ -14193,7 +14243,7 @@ function eintragDialog(o = {}) {
       body.append(dl, feld("Gericht", w.name), feld("Mahlzeit", w.mahlzeit));
       w.mahlzeit.onchange = () => { const g = daten.gericht_mahlzeit[w.name.value.trim().toLowerCase()]; };
     } else {
-      w.name = h("input", { type: "text", value: v.name || "", placeholder: o.lv ? "z. B. Analysis I" : art === "termin" ? "z. B. Vorlesung Statistik" : "z. B. Übungsblatt 3 abgeben" });
+      w.name = h("input", { type: "text", value: v.name || terminVorgabe.name || "", placeholder: o.lv ? "z. B. Analysis I" : art === "termin" ? "z. B. Vorlesung Statistik" : "z. B. Übungsblatt 3 abgeben" });
       body.append(feld("Titel", w.name));
     }
     w.datum = h("input", { type: "date", value: v._start || v.datum || dtag });
@@ -14224,8 +14274,16 @@ function eintragDialog(o = {}) {
     wd.onchange = sichtbar; sichtbar();
     if (wiederholt && !neu) { /* Wiederholung bleibt änderbar, gilt dann für alle */ }
     body.append(h("div", { class: "grid2" }, feld("Wiederholung", wd), bisFeld));
-    body.append(feld("Farbe", farbwahl(farbe, c => { farbe = c; })));
-    w.notiz = h("textarea", { placeholder: "Notiz …" }); w.notiz.value = v.notiz || "";
+    /* Neue Einträge: sobald ein Fach feststeht, dessen Farbe vorauswählen (solange keine eigene gewählt wurde) */
+    const farbFeld = h("div"), farbeZeichnen = () => farbFeld.replaceChildren(farbwahl(farbe, c => { farbe = c; farbeSelbst = true; }));
+    farbeZeichnen(); body.append(feld("Farbe", farbFeld));
+    if (neu && art !== "essen" && w.fach) {
+      const fachJetzt = () => (w.fach.value || "").trim() || (o.lv ? w.name.value.trim() : "");
+      const nachziehen = () => { if (farbeSelbst) return; const f = fachFarbe(fachJetzt()); if (f !== farbe) { farbe = f; farbeZeichnen(); } };
+      w.fach.addEventListener("input", nachziehen); w.fach.addEventListener("change", nachziehen);
+      if (o.lv) w.name.addEventListener("input", nachziehen);   // bei Lehrveranstaltungen ist ein leeres Fach = Titel
+    }
+    w.notiz = h("textarea", { placeholder: "Notiz …" }); w.notiz.value = v.notiz || terminVorgabe.notiz || "";
     body.append(feld("Notiz", w.notiz));
     if (art !== "essen") {
       w.check = h("textarea", { placeholder: "[ ] Teilschritt 1\n[x] Teilschritt 2", style: "min-height:60px" }); w.check.value = checklisteText(v.checkliste);
@@ -14245,6 +14303,7 @@ function eintragDialog(o = {}) {
       f.name = w.name.value.trim(); if (!f.name) { toast("Bitte einen Titel eintragen."); return null; }
       f.dauer = Math.max(parseInt(w.dauer.value, 10) || 30, 5); f.kategorie = w.kat.value; f.fach = w.fach.value.trim();
       if (o.lv && !f.fach) f.fach = f.name;   // ohne Fach erscheint sie nicht im Stundenplan
+      if (neu && !farbeSelbst && !f.farbe && f.fach) f.farbe = fachFarbe(f.fach);   // gleiche Farbe wie die anderen Einträge des Fachs
       f.raum = w.raum.value.trim(); f.dozent = w.dozent.value.trim();
       f.prio = parseInt(w.prio?.value || v.prio || 2, 10); f.vorlauf = Math.max(parseInt(w.vorlauf?.value || 0, 10) || 0, 0);
       f.checkliste = checklisteParsen(w.check.value);
@@ -14269,12 +14328,14 @@ function eintragDialog(o = {}) {
         const e = Object.assign({ erledigt: false, erledigt_tage: [], ausnahmen: {} }, f);
         if (art === "essen") daten.essen.push(e); else { e.typ = art; daten.aufgaben.push(e); }
         if (o.lv && e.fach && !(e.fach in daten.faecher)) daten.faecher[e.fach] = { ziel: 0 };   // neues Fach gleich mit anlegen
+        if (art !== "essen") fachFarbeMerken(e.fach, e.farbe);   // nächste Veranstaltung mit diesem Fach bekommt dieselbe Farbe
         if (art === "essen") daten.gericht_mahlzeit[f.gericht.toLowerCase()] = f.mahlzeit;
         return;
       }
       const ziel = o.quelle;
       const wiederholteVorlage = (ziel.wiederholung || "keine") !== "keine";
       const anwenden = scope => {
+        if (art !== "essen" && farbeSelbst) fachFarbeMerken(f.fach, f.farbe);   // geänderte Farbe gilt ab jetzt fürs ganze Fach
         if (!wiederholteVorlage || scope === "alle") {
           const verschiebung = diffDays(parseISO(f.datum), parseISO(v._start || ziel.datum));
           const dauerT = dauerInTagen(ziel);
@@ -14642,9 +14703,13 @@ function rasterBauen(montag, quelleFn, von, bis, klickNeu, opt = {}) {
       const w = 100 / x.n;
       const zeitText = x.fort ? t("bis ") + minutenText(x.e) : minutenText(x.b) + (x.it.v.raum ? " · " + x.it.v.raum : "");
       col._evs.push({ top, unten: top + hoehe, b: x.b, titel: (x.fort ? "↳ " : "") + titelVon(x.it) });
-      col.append(h("div", { class: "ev" + (erl ? " erl" : "") + (x.fort ? " fort" : ""), style: `top:${top}px;height:${hoehe}px;left:calc(${x.c * w}% + 1px);width:calc(${w}% - 3px);background:${farbeVon(x.it.v, x.it.art)}`,
+      const evEl = h("div", { class: "ev" + (erl ? " erl" : "") + (x.fort ? " fort" : ""), style: `top:${top}px;height:${hoehe}px;left:calc(${x.c * w}% + 1px);width:calc(${w}% - 3px);background:${farbeVon(x.it.v, x.it.art)}`,
         rtitle: x.fort ? `${titelVon(x.it)} (${t("vom Vortag")}, ${t("bis ")}${minutenText(x.e)})` : `${minutenText(x.b)} ${titelVon(x.it)}`, onclick: ev => { ev.stopPropagation(); if (unterdrueckeKlick) return; eintragOeffnen(x.it); }, onpointerdown: ev => { if ((opt.drag || opt.verschieben) && !x.fort) verschiebenStarten(ev, x.it, cols, von, hh); } },
-        h("b", null, R((x.fort ? "↳ " : "") + titelVon(x.it))), hoehe > 34 ? R(zeitText) : null));
+        h("b", null, R((x.fort ? "↳ " : "") + titelVon(x.it))), hoehe > 34 ? R(zeitText) : null);
+      /* Griff an der Unterkante: ziehen = Dauer ändern (nicht bei Essen und nicht bei Fortsetzungen über Mitternacht) */
+      if ((opt.drag || opt.verschieben) && !x.fort && x.it.art !== "essen" && x.it.v._quelle)
+        evEl.append(h("div", { class: "ev-griff", rtitle: t("Ziehen: Dauer ändern"), onpointerdown: ev => dauerZiehen(ev, evEl, x.it, x.b, hh) }));
+      col.append(evEl);
     }
     if (iso(tag) === heut) col.append(h("div", { class: "now", "data-now": "1" }));
     if (opt.ausdehnen) for (const richtung of ["oben", "unten"]) col.append(h("div", { class: "wk-mehr " + richtung, hidden: true, onclick: ev => { ev.stopPropagation(); mehrHinweisKlick(ev.currentTarget); } }));
@@ -14906,13 +14971,16 @@ function faecherTab() {
 }
 function fachDialog(name) {
   const alt = name !== undefined, n = h("input", { type: "text", value: name || "" }), z = h("input", { type: "number", min: 0, step: 0.5, value: alt ? daten.faecher[name].ziel || 0 : 4 });
-  dialog(alt ? "Fach bearbeiten" : "Neues Fach", [feld("Name", n), feld("Wochenziel (Stunden)", z)], [
+  let farbe = alt ? fachFarbe(name) : "";
+  dialog(alt ? "Fach bearbeiten" : "Neues Fach", [feld("Name", n), feld("Wochenziel (Stunden)", z), feld("Farbe für alle Einträge dieses Fachs", farbwahl(farbe, c => { farbe = c; }))], [
     ...(alt ? [{ text: "Löschen", art: "bad", fn: () => aendern(() => { delete daten.faecher[name]; }) }] : []), { text: "Abbrechen" },
     { text: "Speichern", art: "pri", fn: () => {
       const neu = n.value.trim(); if (!neu) { toast("Bitte einen Namen eintragen."); return false; }
       aendern(() => {
+        const vorher = alt ? daten.faecher[name] || {} : {};   // weitere Angaben (z. B. Farbe) behalten
         if (alt && neu !== name) { delete daten.faecher[name]; for (const a of daten.aufgaben) if (a.fach === name) a.fach = neu; }
-        daten.faecher[neu] = { ziel: Math.max(parseFloat(z.value) || 0, 0) };
+        daten.faecher[neu] = Object.assign({}, vorher, { ziel: Math.max(parseFloat(z.value) || 0, 0) });
+        if (farbe) daten.faecher[neu].farbe = farbe; else delete daten.faecher[neu].farbe;
       });
     } }]);
 }
@@ -16111,6 +16179,35 @@ function verschiebenStarten(ev, it, cols, von, hh, ganztag = false) {
   };
   document.addEventListener("pointermove", bew); document.addEventListener("pointerup", hoch);
 }
+/* ---------- Dauer per Ziehen an der Unterkante ändern (in 15-Minuten-Schritten) ---------- */
+function dauerZiehen(ev, el, it, beginn, hh) {
+  if (ev.button !== 0) return;
+  ev.stopPropagation(); ev.preventDefault();   // nicht gleichzeitig verschieben
+  const y0 = ev.clientY, hoehe0 = el.style.height, dauer0 = Math.max(it.v.dauer || 30, 15);
+  let dauerNeu = dauer0, bewegt = false;
+  const anzeige = h("div", { class: "ev-dauer" });
+  const bew = e2 => {
+    const dy = e2.clientY - y0; if (!bewegt && Math.abs(dy) < 4) return;
+    if (!bewegt) { bewegt = true; unterdrueckeKlick = true; el.append(anzeige); el.classList.add("ziehen"); }
+    dauerNeu = Math.min(Math.max(15, Math.round((dauer0 + dy / hh * 60) / 15) * 15), 1440 - beginn);
+    el.style.height = Math.max(dauerNeu / 60 * hh, 20) + "px";
+    anzeige.textContent = `${minutenText(beginn)}–${minutenText(beginn + dauerNeu)} · ${dauerNeu} min`;
+  };
+  const hoch = () => {
+    document.removeEventListener("pointermove", bew); document.removeEventListener("pointerup", hoch);
+    anzeige.remove(); el.classList.remove("ziehen"); setTimeout(() => { unterdrueckeKlick = false; }, 60);
+    if (bewegt && dauerNeu !== dauer0) dauerSetzen(it, dauerNeu); else el.style.height = hoehe0;
+  };
+  document.addEventListener("pointermove", bew); document.addEventListener("pointerup", hoch);
+}
+function dauerSetzen(it, dauer) {
+  const q = it.v._quelle, anfang = it.v._anfang;
+  if ((q.wiederholung || "keine") === "keine") return aendern(() => { q.dauer = dauer; });
+  dialog("Serie ändern", h("p", { style: "margin:0" }, "Dieser Eintrag wiederholt sich. Die neue Dauer nur für diesen Termin oder für die ganze Serie übernehmen?"),
+    [{ text: "Abbrechen", fn: () => { render(); } },
+     { text: "Ganze Serie", fn: () => aendern(() => { q.dauer = dauer; }) },
+     { text: "Nur diesen Termin", art: "pri", fn: () => aendern(() => { q.ausnahmen = q.ausnahmen || {}; const a = q.ausnahmen[anfang] = q.ausnahmen[anfang] || {}; delete a.geloescht; if (dauer === q.dauer) delete a.dauer; else a.dauer = dauer; }) }]);
+}
 function eintragVerschieben(it, tagNeu, minuteNeu) {
   const v = it.v, q = v._quelle, anfang = v._anfang, tagAlt = parseISO(v._start || iso(it.tag)), uhrAlt = v.uhrzeit || "", uhrNeu = minuteNeu === null ? uhrAlt : minutenText(minuteNeu);
   if (iso(tagNeu) === iso(tagAlt) && uhrNeu === uhrAlt) return;
@@ -16445,8 +16542,18 @@ if (!einst.willkommen_gezeigt) {
   if (!daten.aufgaben.length && !daten.essen.length && !Object.keys(daten.faecher).length && !daten.noten.length) { einst.zuletzt_version = APP_VERSION; setTimeout(willkommenDialog, 500); }   // neue Nutzer: kein „Was ist neu“
   else { einst.willkommen_gezeigt = true; speichern(); }
 }
-/* „Was ist neu“ einmal nach einem Update zeigen (nicht beim allerersten Start) */
-if (einst.willkommen_gezeigt && einst.zuletzt_version !== APP_VERSION) {
+/* Teilen an OSA (Android, installierte App): der geteilte Text kommt als ?title=…&text=…&url=… an */
+const _geteilt = (() => {
+  try {
+    const p = new URLSearchParams(location.search), teile = ["title", "text", "url"].map(k => (p.get(k) || "").trim()).filter(Boolean);
+    if (!teile.length) return "";
+    history.replaceState(null, "", location.pathname);   // Adresse aufräumen, damit es beim Neuladen nicht noch einmal kommt
+    return [...new Set(teile)].join("\n");
+  } catch (e) { return ""; }
+})();
+if (_geteilt) setTimeout(() => geteiltDialog(_geteilt), 700);
+/* „Was ist neu“ einmal nach einem Update zeigen (nicht beim allerersten Start, nicht wenn gerade etwas geteilt wurde) */
+if (!_geteilt && einst.willkommen_gezeigt && einst.zuletzt_version !== APP_VERSION) {
   const seit = einst.zuletzt_version; einst.zuletzt_version = APP_VERSION; speichern();
   setTimeout(() => { if (!document.querySelector(".ov")) wasIstNeuDialog(seit); }, 900);
 }
@@ -16490,6 +16597,28 @@ if (/^https?:$/.test(location.protocol)) {
       document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") pruefen(); });
     }).catch(() => { });
   }
+}
+/* Dialog für geteilten Text: Titel, Datum und Uhrzeit wie bei der Schnell-Eingabe erkennen, ganzer Text kommt in die Notiz */
+function geteiltDialog(text) {
+  /* Jede Zeile prüfen und die nehmen, in der Datum und/oder Uhrzeit stecken (sonst die erste Zeile) */
+  const zeilen = text.split("\n").map(z => z.trim()).filter(Boolean), jetzt = new Date();
+  let ersteZeile = zeilen[0] || text, e = null, beste = -1;
+  for (const z of zeilen.slice(0, 12)) {
+    const p = schnellParsen(z.slice(0, 200), jetzt, einst.kategorien); if (!p || p.fehler || !p.name) continue;
+    const punkte = (p.datum ? 2 : 0) + (p.uhrzeit ? 2 : 0);
+    if (punkte > beste) { beste = punkte; e = p; ersteZeile = z; }
+  }
+  const gut = e && !e.fehler && e.name;
+  const vorgabe = { name: gut ? e.name : ersteZeile.slice(0, 80), notiz: text, datum: (gut && e.datum) || "", uhrzeit: (gut && e.uhrzeit) || "" };
+  if (gut && e.dauer) vorgabe.dauer = e.dauer;
+  let zu = () => { };
+  const oeffnen = art => { zu(); eintragDialog({ art, tag: vorgabe.datum ? parseISO(vorgabe.datum) : heute(), vorgabe }); };
+  zu = dialog("An OSA geteilt", [
+    h("p", { class: "mut small", style: "margin:0" }, "Mach daraus einen Eintrag. Titel, Datum und Uhrzeit werden – wenn möglich – erkannt, der ganze Text landet in der Notiz."),
+    h("div", { class: "geteilt-text" }, R(text)),
+    gut ? h("p", { class: "small", style: "margin:0" }, R(`${t("Erkannt")}: ${schnellVorschau(Object.assign({}, e, { datum: e.datum || iso(heute()) }))}`)) : null,
+    h("div", { class: "mehr-gitter" }, h("button", { class: "btn" + (gut && e.uhrzeit ? " pri" : ""), onclick: () => oeffnen("termin") }, "Als Termin"), h("button", { class: "btn" + (gut && e.uhrzeit ? "" : " pri"), onclick: () => oeffnen("aufgabe") }, "Als Aufgabe / Frist"))],
+    [{ text: "Abbrechen" }]);
 }
 function wasIstNeuDialog(seit) {
   const liste = NEUIGKEITEN.filter(n => !seit || n.version > seit);
