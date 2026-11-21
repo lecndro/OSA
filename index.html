@@ -287,6 +287,7 @@ html.wechsel,html.wechsel *,html.wechsel *::before,html.wechsel *::after{transit
  .ev{font-size:9.5px;padding:1px 2px;border-left-width:2px;border-radius:5px}
  .wk-mehr{font-size:9px;padding:2px 1px;left:1px;right:1px}
 }
+html{scrollbar-gutter:stable}   /* Platz für den Scrollbalken bleibt immer reserviert: kein seitliches Springen beim Wechsel zwischen kurzen und langen Seiten */
 .vorhang{position:absolute;left:-12px;right:-12px;top:-4px;z-index:40;pointer-events:none;will-change:transform}
 .ctx{position:fixed;z-index:60;background:var(--surf);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.28);padding:6px;min-width:200px;animation:einblenden .12s ease both}
 .ctx button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;border-radius:9px;color:var(--fg);cursor:pointer;font:inherit}
@@ -13670,8 +13671,17 @@ const SPRACHEN = { de: "Deutsch", en: "English", es: "Español", fr: "Français"
 const I18N = JSON.parse(document.getElementById("i18n-daten").textContent);
 /* ---------- Version und „Was ist neu“ ----------
    Bei jedem Update: APP_VERSION erhöhen und oben in NEUIGKEITEN einen Eintrag ergänzen. */
-const APP_VERSION = "2026.11.21d";
+const APP_VERSION = "2026.11.21g";
 const NEUIGKEITEN = [
+  { version: "2026.11.21g", punkte: [
+    "Ruhigerer Seitenwechsel: Die Seite springt nicht mehr seitlich, wenn der Scrollbalken erscheint oder verschwindet"
+  ] },
+  { version: "2026.11.21f", punkte: [
+    "Eigene Farben: Die zweite Farbschema-Auswahl bei „Programmfarben“ ist weggefallen – die Farben gelten für das Farbschema, das du oben unter „Farbschema“ gewählt hast"
+  ] },
+  { version: "2026.11.21e", punkte: [
+    "Eigene Farben: Ziehen im Farbwähler ist ein einziger Schritt für „Rückgängig“"
+  ] },
   { version: "2026.11.21d", punkte: [
     "Der Knopf „+ Neu“ steht jetzt links neben „?“ und ist in der Hauptfarbe hervorgehoben"
   ] },
@@ -14057,6 +14067,12 @@ for (const [l, w] of Object.entries(I18N_AUFGABEN)) {
 /* Übersetzungen zum Knopf "+ Neu" (ersetzt den Reiter "+") */
 const I18N_PLUS = {
   en: {
+    "Ruhigerer Seitenwechsel: Die Seite springt nicht mehr seitlich, wenn der Scrollbalken erscheint oder verschwindet": "Calmer page changes: the page no longer jumps sideways when the scroll bar appears or disappears",
+    "Eigene Farben: Die zweite Farbschema-Auswahl bei „Programmfarben“ ist weggefallen – die Farben gelten für das Farbschema, das du oben unter „Farbschema“ gewählt hast": "Custom colours: the second colour scheme selector under “Programme colours” is gone – the colours apply to the colour scheme you chose above under “Colour scheme”",
+    "Eigene Farben: Ziehen im Farbwähler ist ein einziger Schritt für „Rückgängig“": "Custom colours: dragging in the colour picker is a single step for “Undo”",
+    "Eigene Farben: „Farbschema bearbeiten“ folgt jetzt dem gewählten Farbschema, ein nicht aktives Schema wird mit Hinweis angeboten, und Ziehen im Farbwähler ist ein einziger Schritt für „Rückgängig“": "Custom colours: “Edit colour scheme” now follows the chosen colour scheme, an inactive scheme comes with a hint, and dragging in the colour picker is a single step for “Undo”",
+    "Dieses Farbschema ist gerade nicht aktiv. Du siehst deine Änderungen erst, wenn du es verwendest.": "This colour scheme is not active right now. You will only see your changes once you use it.",
+    "Dieses Farbschema verwenden": "Use this colour scheme",
     "Der Knopf „+ Neu“ steht jetzt links neben „?“ und ist in der Hauptfarbe hervorgehoben": "The “+ New” button is now to the left of “?” and highlighted in the main colour",
     "Schreib oben bei „Schnell hinzufügen“ einen Satz wie „Mathe-Klausur Freitag 14 Uhr“ oder nutze den Knopf „+“, um deinen ersten Eintrag anzulegen – oder hole deine Daten aus der Desktop-Version: Einstellungen › Daten und Export › Sicherung laden (osa.json).": "Under “Quick add” type a sentence like “Maths exam Friday 2 pm”, or use the “+” button to create your first entry – or bring your data over from the desktop version: Settings › Data and export › Load backup (osa.json).",
     "Weniger Reiter sind übersichtlicher. Die wichtigsten (Heute, Kalender) sind immer da. Den Rest kannst du jederzeit in den Einstellungen ein- oder ausblenden.": "Fewer tabs are clearer. The most important ones (Today, Calendar) are always there. You can show or hide the rest at any time in the settings.",
@@ -14064,6 +14080,12 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "The “+” tab is gone: on a PC there is now a “+ New” button at the top right; on a phone “+” stays in the middle of the bottom bar"
   },
   es: {
+    "Ruhigerer Seitenwechsel: Die Seite springt nicht mehr seitlich, wenn der Scrollbalken erscheint oder verschwindet": "Cambios de página más tranquilos: la página ya no salta hacia los lados cuando aparece o desaparece la barra de desplazamiento",
+    "Eigene Farben: Die zweite Farbschema-Auswahl bei „Programmfarben“ ist weggefallen – die Farben gelten für das Farbschema, das du oben unter „Farbschema“ gewählt hast": "Colores propios: se ha quitado la segunda selección de esquema de color en «Colores del programa»; los colores valen para el esquema que elegiste arriba en «Esquema de color»",
+    "Eigene Farben: Ziehen im Farbwähler ist ein einziger Schritt für „Rückgängig“": "Colores propios: arrastrar en el selector de color es un único paso para «Deshacer»",
+    "Eigene Farben: „Farbschema bearbeiten“ folgt jetzt dem gewählten Farbschema, ein nicht aktives Schema wird mit Hinweis angeboten, und Ziehen im Farbwähler ist ein einziger Schritt für „Rückgängig“": "Colores propios: «Editar esquema de color» ahora sigue el esquema elegido, un esquema inactivo se ofrece con un aviso, y arrastrar en el selector de color es un único paso para «Deshacer»",
+    "Dieses Farbschema ist gerade nicht aktiv. Du siehst deine Änderungen erst, wenn du es verwendest.": "Este esquema de color no está activo ahora. Solo verás tus cambios cuando lo uses.",
+    "Dieses Farbschema verwenden": "Usar este esquema de color",
     "Der Knopf „+ Neu“ steht jetzt links neben „?“ und ist in der Hauptfarbe hervorgehoben": "El botón «+ Nuevo» ahora está a la izquierda de «?» y resaltado con el color principal",
     "Schreib oben bei „Schnell hinzufügen“ einen Satz wie „Mathe-Klausur Freitag 14 Uhr“ oder nutze den Knopf „+“, um deinen ersten Eintrag anzulegen – oder hole deine Daten aus der Desktop-Version: Einstellungen › Daten und Export › Sicherung laden (osa.json).": "Arriba, en «Añadir rápido», escribe una frase como «Examen de mates viernes 14 h», o usa el botón «+» para crear tu primera entrada – o trae tus datos de la versión de escritorio: Ajustes › Datos y exportación › Cargar copia (osa.json).",
     "Weniger Reiter sind übersichtlicher. Die wichtigsten (Heute, Kalender) sind immer da. Den Rest kannst du jederzeit in den Einstellungen ein- oder ausblenden.": "Menos pestañas son más claras. Las más importantes (Hoy, Calendario) siempre están. El resto puedes mostrarlo u ocultarlo cuando quieras en los ajustes.",
@@ -14071,6 +14093,12 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "La pestaña «+» ya no existe: en el PC hay ahora un botón «+ Nuevo» arriba a la derecha; en el móvil «+» sigue en el centro de la barra inferior"
   },
   fr: {
+    "Ruhigerer Seitenwechsel: Die Seite springt nicht mehr seitlich, wenn der Scrollbalken erscheint oder verschwindet": "Changements de page plus calmes : la page ne saute plus sur le côté quand la barre de défilement apparaît ou disparaît",
+    "Eigene Farben: Die zweite Farbschema-Auswahl bei „Programmfarben“ ist weggefallen – die Farben gelten für das Farbschema, das du oben unter „Farbschema“ gewählt hast": "Couleurs personnalisées : la seconde sélection du jeu de couleurs sous « Couleurs du programme » a disparu – les couleurs valent pour le jeu choisi en haut sous « Jeu de couleurs »",
+    "Eigene Farben: Ziehen im Farbwähler ist ein einziger Schritt für „Rückgängig“": "Couleurs personnalisées : glisser dans le sélecteur de couleur compte pour une seule étape de « Annuler »",
+    "Eigene Farben: „Farbschema bearbeiten“ folgt jetzt dem gewählten Farbschema, ein nicht aktives Schema wird mit Hinweis angeboten, und Ziehen im Farbwähler ist ein einziger Schritt für „Rückgängig“": "Couleurs personnalisées : « Modifier le jeu de couleurs » suit maintenant le jeu choisi, un jeu inactif est proposé avec un avis, et glisser dans le sélecteur de couleur compte pour une seule étape de « Annuler »",
+    "Dieses Farbschema ist gerade nicht aktiv. Du siehst deine Änderungen erst, wenn du es verwendest.": "Ce jeu de couleurs n'est pas actif pour le moment. Tu ne verras tes modifications qu'une fois que tu l'utiliseras.",
+    "Dieses Farbschema verwenden": "Utiliser ce jeu de couleurs",
     "Der Knopf „+ Neu“ steht jetzt links neben „?“ und ist in der Hauptfarbe hervorgehoben": "Le bouton « + Nouveau » est maintenant à gauche de « ? » et mis en valeur avec la couleur principale",
     "Schreib oben bei „Schnell hinzufügen“ einen Satz wie „Mathe-Klausur Freitag 14 Uhr“ oder nutze den Knopf „+“, um deinen ersten Eintrag anzulegen – oder hole deine Daten aus der Desktop-Version: Einstellungen › Daten und Export › Sicherung laden (osa.json).": "En haut, sous « Ajout rapide », écris une phrase comme « Examen de maths vendredi 14 h », ou utilise le bouton « + » pour créer ta première entrée – ou récupère tes données de la version bureau : Réglages › Données et export › Charger une sauvegarde (osa.json).",
     "Weniger Reiter sind übersichtlicher. Die wichtigsten (Heute, Kalender) sind immer da. Den Rest kannst du jederzeit in den Einstellungen ein- oder ausblenden.": "Moins d'onglets, c'est plus clair. Les plus importants (Aujourd'hui, Calendrier) sont toujours là. Tu peux afficher ou masquer le reste à tout moment dans les réglages.",
@@ -15613,25 +15641,29 @@ function einstellungenTab() {
 /* ---------- Programmfarben ---------- */
 let pfSchema = null;
 function programmfarbenSektion() {
-  const schema = pfSchema || aktivesSchema();
-  const wahl = auswahl(DESIGN_AUSWAHL.filter(([k]) => k in THEMEN), schema);
-  wahl.onchange = () => { pfSchema = wahl.value; render(); };
+  const schema = aktivesSchema();   // immer das aktive Farbschema; gewählt wird es oben unter „Farbschema“
   const eigene = () => ((einst.programmfarben = einst.programmfarben || {})[schema] = (einst.programmfarben[schema] || {}));
   const zeilen = Object.entries(PROGRAMMFARBEN).map(([k, [name, hinweis]]) => {
-    const aktuell = (einst.programmfarben[schema] || {})[k] || THEMEN[schema][k];
+    const aktuell = ((einst.programmfarben || {})[schema] || {})[k] || THEMEN[schema][k];
     const pick = h("input", { type: "color", value: aktuell, style: "width:42px;height:32px;padding:2px;cursor:pointer" });
     const hex = h("input", { type: "text", value: aktuell, style: "width:96px;font-family:ui-monospace,monospace", maxlength: 7 });
-    const setzenFarbe = w => {
+    let gesichert = false, spaeter = 0;   // beim Ziehen im Farbwähler nur EIN Schritt für „Rückgängig“, gespeichert wird danach
+    const anwenden = (w, endgueltig) => {
       w = w.trim().toLowerCase(); if (!HEX_FARBE.test(w)) return false;
-      aendern(() => { if (w === THEMEN[schema][k].toLowerCase()) { delete eigene()[k]; } else eigene()[k] = w; }, true);
-      themaAnwenden(); pick.value = w; hex.value = w; return true;
+      if (!gesichert) { verlauf.push(JSON.stringify(daten)); if (verlauf.length > 40) verlauf.shift(); gesichert = true; }
+      if (w === THEMEN[schema][k].toLowerCase()) delete eigene()[k]; else eigene()[k] = w;
+      themaAnwenden(); pick.value = w; hex.value = w;
+      clearTimeout(spaeter);
+      if (endgueltig) { speichern(); gesichert = false; } else spaeter = setTimeout(() => { speichern(); gesichert = false; }, 700);
+      return true;
     };
-    pick.oninput = () => setzenFarbe(pick.value);
-    hex.onchange = () => { if (!setzenFarbe(hex.value)) { toast("Kein Farbcode (Beispiel: #4f6bed)."); hex.value = pick.value; } };
+    pick.oninput = () => anwenden(pick.value, false);
+    pick.onchange = () => anwenden(pick.value, true);
+    hex.onchange = () => { if (!anwenden(hex.value, true)) { toast("Kein Farbcode (Beispiel: #4f6bed)."); hex.value = pick.value; } };
     return h("div", { class: "li" }, pick, h("div", { class: "tx" }, h("b", null, name), h("div", { class: "mut small" }, hinweis)), hex);
   });
   return sektion("Programmfarben", h("p", { class: "mut small", style: "margin:0" }, "Eigene Farben für das gewählte Farbschema. Änderungen gelten sofort."),
-    feld("Farbschema bearbeiten", wahl), h("div", { class: "list" }, zeilen),
+    h("div", { class: "list" }, zeilen),
     h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { aendern(() => { delete (einst.programmfarben || {})[schema]; }); } }, "Auf Standard zurücksetzen")));
 }
 
