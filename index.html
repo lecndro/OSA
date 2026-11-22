@@ -4,8 +4,8 @@
 
 <style>
 :root{--bg:#eef5fe;--surf:#fff;--surf2:#dbe9fb;--fg:#0f2440;--mut:#5a7596;--line:#cfe0f5;--acc:#1d6fe0;--acc-fg:#fff;--acc-soft:#cbe0fb;--knopf:#dae8fb;--knopf-h:#c6dcf7;--heute:#e6f0fd;--ok:#2e9d5b;--warn:#d98a14;--bad:#d64545;--now:#f26b3a;--chip-fg:#1f2937;--sh:none;--r:18px}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1e1c2e;--surf:#29273d;--surf2:#322f49;--fg:#ece9ff;--mut:#b0adcf;--line:#423e62;--acc:#8b6cff;--acc-fg:#fff;--acc-soft:#383265;--knopf:#383453;--knopf-h:#46406d;--heute:#2f2c48;--now:#ff6b8b;--sh:none;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#1e1c2e;--surf:#29273d;--surf2:#322f49;--fg:#ece9ff;--mut:#b0adcf;--line:#423e62;--acc:#8b6cff;--acc-fg:#fff;--acc-soft:#383265;--knopf:#383453;--knopf-h:#46406d;--heute:#2f2c48;--now:#ff6b8b;--sh:none;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1e1c2e;--surf:#29273d;--surf2:#322f49;--fg:#ece9ff;--mut:#b0adcf;--line:#423e62;--acc:#ff9a3d;--acc-fg:#2b1700;--acc-soft:#4a3a2c;--knopf:#383453;--knopf-h:#46406d;--heute:#2f2c48;--now:#ff6b8b;--sh:none;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1e1c2e;--surf:#29273d;--surf2:#322f49;--fg:#ece9ff;--mut:#b0adcf;--line:#423e62;--acc:#ff9a3d;--acc-fg:#2b1700;--acc-soft:#4a3a2c;--knopf:#383453;--knopf-h:#46406d;--heute:#2f2c48;--now:#ff6b8b;--sh:none;color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font:14px/1.45 "Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;margin:0}
 h1,h2,h3,.brand{font-family:inherit;text-wrap:balance;margin:0}
@@ -12879,12 +12879,11 @@ function addMonate(start, n) {
 /* ---------- Konstanten ---------- */
 /* Farbschemata (wie in der Python-Version) und die einstellbaren Programmfarben */
 const THEMEN = {
-  dunkel: { dunkel: true, bg: "#1e1c2e", karte: "#29273d", kopf: "#322f49", text: "#ece9ff", text2: "#b0adcf", linie: "#423e62", akzent: "#8b6cff", akzent_text: "#ffffff", knopf: "#383453", knopf_hover: "#46406d", auswahl: "#383265", heute: "#2f2c48", jetzt: "#ff6b8b", farbtext: "#1f2937" },
+  dunkel: { dunkel: true, bg: "#1e1c2e", karte: "#29273d", kopf: "#322f49", text: "#ece9ff", text2: "#b0adcf", linie: "#423e62", akzent: "#ff9a3d", akzent_text: "#2b1700", knopf: "#383453", knopf_hover: "#46406d", auswahl: "#4a3a2c", heute: "#2f2c48", jetzt: "#ff6b8b", farbtext: "#1f2937" },
   ozean: { bg: "#eef5fe", karte: "#ffffff", kopf: "#dbe9fb", text: "#0f2440", text2: "#5a7596", linie: "#cfe0f5", akzent: "#1d6fe0", akzent_text: "#ffffff", knopf: "#dae8fb", knopf_hover: "#c6dcf7", auswahl: "#cbe0fb", heute: "#e6f0fd", jetzt: "#f26b3a", farbtext: "#1f2937" },
-  sunset: { bg: "#fff7f0", karte: "#ffffff", kopf: "#ffe9d6", text: "#3a2218", text2: "#8f6b58", linie: "#f6dcc8", akzent: "#dd4b13", akzent_text: "#ffffff", knopf: "#ffe6d2", knopf_hover: "#ffd6b8", auswahl: "#ffdcc2", heute: "#fff0e3", jetzt: "#7c3aed", farbtext: "#1f2937" },
 };
 /* Reihenfolge und Namen in der Design-Auswahl. "ozean" (blau) heißt in der Oberfläche „Hell“ (Schlüssel bleibt wegen gespeicherter Einstellungen). */
-const DESIGN_AUSWAHL = [["auto", "Automatisch (System)"], ["ozean", "Hell"], ["dunkel", "Dunkel"], ["sunset", "Sunset"]];
+const DESIGN_AUSWAHL = [["auto", "Automatisch (System)"], ["ozean", "Hell"], ["dunkel", "Dunkel"]];
 const THEMA_VAR = { bg: "--bg", karte: "--surf", kopf: "--surf2", text: "--fg", text2: "--mut", linie: "--line", akzent: "--acc", akzent_text: "--acc-fg", knopf: "--knopf", knopf_hover: "--knopf-h", auswahl: "--acc-soft", heute: "--heute", jetzt: "--now", farbtext: "--chip-fg" };
 const PROGRAMMFARBEN = {
   akzent: ["Hauptfarbe", "Wichtige Knöpfe, aktiver Reiter, heutiger Tag"],
@@ -13680,8 +13679,12 @@ const SPRACHEN = { de: "Deutsch", en: "English", es: "Español", fr: "Français"
 const I18N = JSON.parse(document.getElementById("i18n-daten").textContent);
 /* ---------- Version und „Was ist neu“ ----------
    Bei jedem Update: APP_VERSION erhöhen und oben in NEUIGKEITEN einen Eintrag ergänzen. */
-const APP_VERSION = "2026.11.23b";
+const APP_VERSION = "2026.11.23c";
 const NEUIGKEITEN = [
+  { version: "2026.11.23c", punkte: [
+    "Das dunkle Farbschema hat jetzt Orange als Hauptfarbe (eigene Farben unter Einstellungen › Aussehen bleiben erhalten)",
+    "Das Farbschema „Sunset“ ist entfallen (wer es benutzt hat, steht auf „Automatisch“)"
+  ] },
   { version: "2026.11.23b", punkte: [
     "Reiter umsortieren: mit gedrückter Alt-Taste und linker Maustaste ziehen (am Handy weiter mit langem Drücken) – die Erklärung steht auch unter „?“"
   ] },
@@ -14091,6 +14094,8 @@ for (const [l, w] of Object.entries(I18N_AUFGABEN)) {
 /* Übersetzungen zum Knopf "+ Neu" (ersetzt den Reiter "+") */
 const I18N_PLUS = {
   en: {
+    "Das Farbschema „Sunset“ ist entfallen (wer es benutzt hat, steht auf „Automatisch“)": "The “Sunset” colour scheme has been removed (anyone who used it is switched to “Automatic”)",
+    "Das dunkle Farbschema hat jetzt Orange als Hauptfarbe (eigene Farben unter Einstellungen › Aussehen bleiben erhalten)": "The dark colour scheme now has orange as its main colour (your own colours under Settings › Appearance are kept)",
     "Tipp: Die Reihenfolge änderst du jederzeit: Alt gedrückt halten und einen Reiter mit der linken Maustaste an eine andere Stelle ziehen (am Handy in den Einstellungen unter „Menü und Reiter“ lange gedrückt halten).": "Tip: you can change the order at any time: hold Alt and drag a tab to another place with the left mouse button (on a phone, press and hold in Settings under “Menu and tabs”).",
     "Tipp: Halte Alt gedrückt und zieh die Reiter mit der linken Maustaste an eine andere Stelle, um die Reihenfolge zu ändern (am Handy: lange gedrückt halten).": "Tip: hold Alt and drag the tabs with the left mouse button to another place to change the order (on a phone: press and hold).",
     "Ziehen": "Drag",
@@ -14117,6 +14122,8 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "The “+” tab is gone: on a PC there is now a “+ New” button at the top right; on a phone “+” stays in the middle of the bottom bar"
   },
   es: {
+    "Das Farbschema „Sunset“ ist entfallen (wer es benutzt hat, steht auf „Automatisch“)": "El esquema de color «Sunset» ha desaparecido (quien lo usaba pasa a «Automático»)",
+    "Das dunkle Farbschema hat jetzt Orange als Hauptfarbe (eigene Farben unter Einstellungen › Aussehen bleiben erhalten)": "El esquema de color oscuro ahora tiene el naranja como color principal (tus colores propios en Ajustes › Aspecto se conservan)",
     "Tipp: Die Reihenfolge änderst du jederzeit: Alt gedrückt halten und einen Reiter mit der linken Maustaste an eine andere Stelle ziehen (am Handy in den Einstellungen unter „Menü und Reiter“ lange gedrückt halten).": "Consejo: puedes cambiar el orden en cualquier momento: mantén pulsada Alt y arrastra una pestaña a otro sitio con el botón izquierdo del ratón (en el móvil, mantén pulsado en Ajustes, en «Menú y pestañas»).",
     "Tipp: Halte Alt gedrückt und zieh die Reiter mit der linken Maustaste an eine andere Stelle, um die Reihenfolge zu ändern (am Handy: lange gedrückt halten).": "Consejo: mantén pulsada Alt y arrastra las pestañas con el botón izquierdo del ratón a otro sitio para cambiar el orden (en el móvil: mantén pulsado).",
     "Ziehen": "Arrastrar",
@@ -14143,6 +14150,8 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "La pestaña «+» ya no existe: en el PC hay ahora un botón «+ Nuevo» arriba a la derecha; en el móvil «+» sigue en el centro de la barra inferior"
   },
   fr: {
+    "Das Farbschema „Sunset“ ist entfallen (wer es benutzt hat, steht auf „Automatisch“)": "Le jeu de couleurs « Sunset » a été supprimé (ceux qui l'utilisaient passent sur « Automatique »)",
+    "Das dunkle Farbschema hat jetzt Orange als Hauptfarbe (eigene Farben unter Einstellungen › Aussehen bleiben erhalten)": "Le jeu de couleurs sombre a maintenant l'orange comme couleur principale (tes couleurs personnalisées sous Réglages › Apparence sont conservées)",
     "Tipp: Die Reihenfolge änderst du jederzeit: Alt gedrückt halten und einen Reiter mit der linken Maustaste an eine andere Stelle ziehen (am Handy in den Einstellungen unter „Menü und Reiter“ lange gedrückt halten).": "Astuce : tu peux changer l'ordre à tout moment : maintiens Alt et fais glisser un onglet à un autre endroit avec le bouton gauche de la souris (sur mobile, appui long dans les réglages sous « Menu et onglets »).",
     "Tipp: Halte Alt gedrückt und zieh die Reiter mit der linken Maustaste an eine andere Stelle, um die Reihenfolge zu ändern (am Handy: lange gedrückt halten).": "Astuce : maintiens Alt et fais glisser les onglets avec le bouton gauche de la souris à un autre endroit pour changer l'ordre (sur mobile : appui long).",
     "Ziehen": "Glisser",
