@@ -287,7 +287,13 @@ html.wechsel,html.wechsel *,html.wechsel *::before,html.wechsel *::after{transit
  .ev{font-size:9.5px;padding:1px 2px;border-left-width:2px;border-radius:5px}
  .wk-mehr{font-size:9px;padding:2px 1px;left:1px;right:1px}
 }
-html{scrollbar-gutter:stable}   /* Platz für den Scrollbalken bleibt immer reserviert: kein seitliches Springen beim Wechsel zwischen kurzen und langen Seiten */
+html{scrollbar-gutter:stable}
+.nav button[data-reiter],.sidenav button[data-reiter],.tog button[data-reiter]{user-select:none;-webkit-user-select:none}
+html.alt-an .nav button[data-reiter],html.alt-an .sidenav button[data-reiter],html.alt-an .tog button[data-reiter]{cursor:grab}
+.nav button.zieht,.sidenav button.zieht,.tog button.zieht{opacity:.35}
+.reiter-geist{opacity:.95;box-shadow:0 8px 22px rgba(0,0,0,.28);background:var(--acc-soft)!important;color:var(--acc)!important;border-radius:999px;cursor:grabbing}
+body.reiter-zieht,body.reiter-zieht *{cursor:grabbing!important;user-select:none!important}
+body.reiter-zieht .ind{display:none}   /* Platz für den Scrollbalken bleibt immer reserviert: kein seitliches Springen beim Wechsel zwischen kurzen und langen Seiten */
 .vorhang{position:absolute;left:-12px;right:-12px;top:-4px;z-index:40;pointer-events:none;will-change:transform}
 .ctx{position:fixed;z-index:60;background:var(--surf);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.28);padding:6px;min-width:200px;animation:einblenden .12s ease both}
 .ctx button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;border-radius:9px;color:var(--fg);cursor:pointer;font:inherit}
@@ -336,7 +342,10 @@ input[type=checkbox]:checked::before{transform:rotate(-45deg) scale(1)}
 @media (prefers-reduced-motion:reduce){body{animation:none}.btn,.nav button,.sub button,.ov,.dlg,.toast,.ctx{transition:none;animation:none}}
 /* Handy: untere Menüleiste statt Reiterzeile */
 .handyleiste{display:none}
-@media (max-width:640px){.kopf-plus{display:none}}   /* am Handy: „+“ unten in der Mitte der Leiste */
+@media (max-width:640px){.kopf-plus,.kopf-einst,.kopf-suche{display:none}}
+.btn.ghost.kopf-einst,.btn.ghost.kopf-suche{padding-inline:10px}
+.btn.ghost.kopf-einst svg,.btn.ghost.kopf-suche svg{display:block}
+.btn.ghost.kopf-einst.on,.btn.ghost.kopf-suche.on{background:var(--acc-soft);color:var(--acc)}   /* am Handy: „+“ unten in der Mitte der Leiste */
 .mehr-gitter{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 /* Einstellungen: Kategorien links (PC) bzw. Übersicht mit Unterseiten (Handy) */
 .einst-suche{width:100%;margin:0 0 14px;font:inherit;font-size:15px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surf);color:var(--fg)}
@@ -12912,7 +12921,7 @@ const STANDARD_EINSTELLUNGEN = {
   mahlzeit_zeiten: { "Frühstück": "08:00", "Mittagessen": "12:30", "Abendessen": "18:30", "Snack": "15:30" },
   erinnerung_an: true, erinnerung_minuten: 15, erinnerung_essen: false,
   essen_an: true,   // Mahlzeiten im Kalender planen (aus: kein „Essen“ beim Anlegen, Mahlzeiten nicht im Kalender; Daten bleiben)
-  reiter_aus: [], reiter_seite: false, leiste: ["heute", "kalender", "fristen"], benachrichtigung: false, filter_aus: [], budget_essen: false, rezepte_an: false, preis_vorschlag: true, ects_ziel: 180, budget_limit: 0, schrift_stufe: "Normal", reiter_animation: true, timer_fokus: 25, timer_pause: 5, wetter_an: false, wetter_ort: "", einkauf_erinnerung: false, einkauf_tag: "Samstag", einkauf_zeit: "10:00", willkommen_gezeigt: false,
+  reiter_aus: [], reiter_reihenfolge: [], reiter_seite: false, leiste: ["heute", "kalender", "fristen"], benachrichtigung: false, filter_aus: [], budget_essen: false, rezepte_an: false, preis_vorschlag: true, ects_ziel: 180, budget_limit: 0, schrift_stufe: "Normal", reiter_animation: true, timer_fokus: 25, timer_pause: 5, wetter_an: false, wetter_ort: "", einkauf_erinnerung: false, einkauf_tag: "Samstag", einkauf_zeit: "10:00", willkommen_gezeigt: false,
   ferien_art: "aus", ferien_land: "DE", ferien_region: "", ferien_ics: "",
   feiertage_land: startFeiertagsLand(),   // "DE", "AT", "CH", "FR", "ES", "IT", "NL", "BE", "GB", "US" oder "aus"
   feiertage_region: "",                   // nur Deutschland: "" = bundesweit, "DE-BY" usw. = mit Landesfeiertagen
@@ -13671,8 +13680,23 @@ const SPRACHEN = { de: "Deutsch", en: "English", es: "Español", fr: "Français"
 const I18N = JSON.parse(document.getElementById("i18n-daten").textContent);
 /* ---------- Version und „Was ist neu“ ----------
    Bei jedem Update: APP_VERSION erhöhen und oben in NEUIGKEITEN einen Eintrag ergänzen. */
-const APP_VERSION = "2026.11.21g";
+const APP_VERSION = "2026.11.23b";
 const NEUIGKEITEN = [
+  { version: "2026.11.23b", punkte: [
+    "Reiter umsortieren: mit gedrückter Alt-Taste und linker Maustaste ziehen (am Handy weiter mit langem Drücken) – die Erklärung steht auch unter „?“"
+  ] },
+  { version: "2026.11.23", punkte: [
+    "Reiter lassen sich per Drag & Drop umsortieren – oben, an der Seite und in den Einstellungen (Handy: lange gedrückt halten; Tastatur: Alt + Umschalt + Pfeil)"
+  ] },
+  { version: "2026.11.22c", punkte: [
+    "Suche ist jetzt ein Lupen-Knopf oben (neben dem Zahnrad), und „Aufgaben“ steht direkt hinter „Kalender“"
+  ] },
+  { version: "2026.11.22b", punkte: [
+    "Einstellungen sind jetzt ein Zahnrad-Knopf oben zwischen „+ Neu“ und „?“ statt eines Reiters (am Handy weiter unter „Mehr“)"
+  ] },
+  { version: "2026.11.22", punkte: [
+    "Schnell-Eingabe: „ab 14 Uhr … bis 17 Uhr“ ergibt ein Zeitfenster, und grobe Angaben wie „nächste Woche“, „im Dezember“, „Ende des Monats“ oder „3. Dezember“ setzen jetzt das richtige Datum"
+  ] },
   { version: "2026.11.21g", punkte: [
     "Ruhigerer Seitenwechsel: Die Seite springt nicht mehr seitlich, wenn der Scrollbalken erscheint oder verschwindet"
   ] },
@@ -14067,6 +14091,19 @@ for (const [l, w] of Object.entries(I18N_AUFGABEN)) {
 /* Übersetzungen zum Knopf "+ Neu" (ersetzt den Reiter "+") */
 const I18N_PLUS = {
   en: {
+    "Tipp: Die Reihenfolge änderst du jederzeit: Alt gedrückt halten und einen Reiter mit der linken Maustaste an eine andere Stelle ziehen (am Handy in den Einstellungen unter „Menü und Reiter“ lange gedrückt halten).": "Tip: you can change the order at any time: hold Alt and drag a tab to another place with the left mouse button (on a phone, press and hold in Settings under “Menu and tabs”).",
+    "Tipp: Halte Alt gedrückt und zieh die Reiter mit der linken Maustaste an eine andere Stelle, um die Reihenfolge zu ändern (am Handy: lange gedrückt halten).": "Tip: hold Alt and drag the tabs with the left mouse button to another place to change the order (on a phone: press and hold).",
+    "Ziehen": "Drag",
+    "Reiter mit gedrückter linker Maustaste an eine andere Stelle ziehen (Reihenfolge ändern)": "Drag a tab to another place with the left mouse button held down (change the order)",
+    "Reiter umsortieren: mit gedrückter Alt-Taste und linker Maustaste ziehen (am Handy weiter mit langem Drücken) – die Erklärung steht auch unter „?“": "Reordering tabs: hold Alt and drag with the left mouse button (on a phone still by pressing and holding) – the explanation is also under “?”",
+    "Reiter lassen sich per Drag & Drop umsortieren – oben, an der Seite und in den Einstellungen (Handy: lange gedrückt halten; Tastatur: Alt + Umschalt + Pfeil)": "Tabs can be reordered by drag & drop – at the top, at the side and in the settings (phone: press and hold; keyboard: Alt + Shift + arrow)",
+    "Reihenfolge zurücksetzen": "Reset order",
+    "Umschalt": "Shift",
+    "Ausgewählten Reiter verschieben": "Move the selected tab",
+    "Suche ist jetzt ein Lupen-Knopf oben (neben dem Zahnrad), und „Aufgaben“ steht direkt hinter „Kalender“": "Search is now a magnifier button at the top (next to the gear), and “Tasks” sits right after “Calendar”",
+    "Suche (Strg + K)": "Search (Ctrl + K)",
+    "Einstellungen sind jetzt ein Zahnrad-Knopf oben zwischen „+ Neu“ und „?“ statt eines Reiters (am Handy weiter unter „Mehr“)": "Settings are now a gear button at the top between “+ New” and “?” instead of a tab (on a phone still under “More”)",
+    "Schnell-Eingabe: „ab 14 Uhr … bis 17 Uhr“ ergibt ein Zeitfenster, und grobe Angaben wie „nächste Woche“, „im Dezember“, „Ende des Monats“ oder „3. Dezember“ setzen jetzt das richtige Datum": "Quick entry: “from 2 pm … until 5 pm” now gives a time window, and rough phrases such as “next week”, “in December”, “end of the month” or “3 December” now set the right date",
     "Ruhigerer Seitenwechsel: Die Seite springt nicht mehr seitlich, wenn der Scrollbalken erscheint oder verschwindet": "Calmer page changes: the page no longer jumps sideways when the scroll bar appears or disappears",
     "Eigene Farben: Die zweite Farbschema-Auswahl bei „Programmfarben“ ist weggefallen – die Farben gelten für das Farbschema, das du oben unter „Farbschema“ gewählt hast": "Custom colours: the second colour scheme selector under “Programme colours” is gone – the colours apply to the colour scheme you chose above under “Colour scheme”",
     "Eigene Farben: Ziehen im Farbwähler ist ein einziger Schritt für „Rückgängig“": "Custom colours: dragging in the colour picker is a single step for “Undo”",
@@ -14080,6 +14117,19 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "The “+” tab is gone: on a PC there is now a “+ New” button at the top right; on a phone “+” stays in the middle of the bottom bar"
   },
   es: {
+    "Tipp: Die Reihenfolge änderst du jederzeit: Alt gedrückt halten und einen Reiter mit der linken Maustaste an eine andere Stelle ziehen (am Handy in den Einstellungen unter „Menü und Reiter“ lange gedrückt halten).": "Consejo: puedes cambiar el orden en cualquier momento: mantén pulsada Alt y arrastra una pestaña a otro sitio con el botón izquierdo del ratón (en el móvil, mantén pulsado en Ajustes, en «Menú y pestañas»).",
+    "Tipp: Halte Alt gedrückt und zieh die Reiter mit der linken Maustaste an eine andere Stelle, um die Reihenfolge zu ändern (am Handy: lange gedrückt halten).": "Consejo: mantén pulsada Alt y arrastra las pestañas con el botón izquierdo del ratón a otro sitio para cambiar el orden (en el móvil: mantén pulsado).",
+    "Ziehen": "Arrastrar",
+    "Reiter mit gedrückter linker Maustaste an eine andere Stelle ziehen (Reihenfolge ändern)": "Arrastrar una pestaña a otro sitio con el botón izquierdo del ratón pulsado (cambiar el orden)",
+    "Reiter umsortieren: mit gedrückter Alt-Taste und linker Maustaste ziehen (am Handy weiter mit langem Drücken) – die Erklärung steht auch unter „?“": "Reordenar pestañas: mantén pulsada Alt y arrastra con el botón izquierdo del ratón (en el móvil, sigue siendo con pulsación larga) – la explicación también está en «?»",
+    "Reiter lassen sich per Drag & Drop umsortieren – oben, an der Seite und in den Einstellungen (Handy: lange gedrückt halten; Tastatur: Alt + Umschalt + Pfeil)": "Las pestañas se pueden reordenar arrastrando y soltando: arriba, al lado y en los ajustes (móvil: mantener pulsado; teclado: Alt + Mayús + flecha)",
+    "Reihenfolge zurücksetzen": "Restablecer el orden",
+    "Umschalt": "Mayús",
+    "Ausgewählten Reiter verschieben": "Mover la pestaña seleccionada",
+    "Suche ist jetzt ein Lupen-Knopf oben (neben dem Zahnrad), und „Aufgaben“ steht direkt hinter „Kalender“": "La búsqueda ahora es un botón de lupa arriba (junto al engranaje), y «Tareas» está justo después de «Calendario»",
+    "Suche (Strg + K)": "Buscar (Ctrl + K)",
+    "Einstellungen sind jetzt ein Zahnrad-Knopf oben zwischen „+ Neu“ und „?“ statt eines Reiters (am Handy weiter unter „Mehr“)": "Los ajustes ahora son un botón de engranaje arriba, entre «+ Nuevo» y «?», en lugar de una pestaña (en el móvil siguen en «Más»)",
+    "Schnell-Eingabe: „ab 14 Uhr … bis 17 Uhr“ ergibt ein Zeitfenster, und grobe Angaben wie „nächste Woche“, „im Dezember“, „Ende des Monats“ oder „3. Dezember“ setzen jetzt das richtige Datum": "Entrada rápida: «desde las 14 h … hasta las 17 h» ahora da una franja horaria, y expresiones aproximadas como «la próxima semana», «en diciembre», «a fin de mes» o «3 de diciembre» ya fijan la fecha correcta",
     "Ruhigerer Seitenwechsel: Die Seite springt nicht mehr seitlich, wenn der Scrollbalken erscheint oder verschwindet": "Cambios de página más tranquilos: la página ya no salta hacia los lados cuando aparece o desaparece la barra de desplazamiento",
     "Eigene Farben: Die zweite Farbschema-Auswahl bei „Programmfarben“ ist weggefallen – die Farben gelten für das Farbschema, das du oben unter „Farbschema“ gewählt hast": "Colores propios: se ha quitado la segunda selección de esquema de color en «Colores del programa»; los colores valen para el esquema que elegiste arriba en «Esquema de color»",
     "Eigene Farben: Ziehen im Farbwähler ist ein einziger Schritt für „Rückgängig“": "Colores propios: arrastrar en el selector de color es un único paso para «Deshacer»",
@@ -14093,6 +14143,19 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "La pestaña «+» ya no existe: en el PC hay ahora un botón «+ Nuevo» arriba a la derecha; en el móvil «+» sigue en el centro de la barra inferior"
   },
   fr: {
+    "Tipp: Die Reihenfolge änderst du jederzeit: Alt gedrückt halten und einen Reiter mit der linken Maustaste an eine andere Stelle ziehen (am Handy in den Einstellungen unter „Menü und Reiter“ lange gedrückt halten).": "Astuce : tu peux changer l'ordre à tout moment : maintiens Alt et fais glisser un onglet à un autre endroit avec le bouton gauche de la souris (sur mobile, appui long dans les réglages sous « Menu et onglets »).",
+    "Tipp: Halte Alt gedrückt und zieh die Reiter mit der linken Maustaste an eine andere Stelle, um die Reihenfolge zu ändern (am Handy: lange gedrückt halten).": "Astuce : maintiens Alt et fais glisser les onglets avec le bouton gauche de la souris à un autre endroit pour changer l'ordre (sur mobile : appui long).",
+    "Ziehen": "Glisser",
+    "Reiter mit gedrückter linker Maustaste an eine andere Stelle ziehen (Reihenfolge ändern)": "Faire glisser un onglet à un autre endroit avec le bouton gauche de la souris enfoncé (changer l'ordre)",
+    "Reiter umsortieren: mit gedrückter Alt-Taste und linker Maustaste ziehen (am Handy weiter mit langem Drücken) – die Erklärung steht auch unter „?“": "Réorganiser les onglets : maintiens Alt et fais glisser avec le bouton gauche de la souris (sur mobile, toujours par appui long) – l'explication est aussi sous « ? »",
+    "Reiter lassen sich per Drag & Drop umsortieren – oben, an der Seite und in den Einstellungen (Handy: lange gedrückt halten; Tastatur: Alt + Umschalt + Pfeil)": "Les onglets se réorganisent par glisser-déposer : en haut, sur le côté et dans les réglages (mobile : appui long ; clavier : Alt + Maj + flèche)",
+    "Reihenfolge zurücksetzen": "Réinitialiser l'ordre",
+    "Umschalt": "Maj",
+    "Ausgewählten Reiter verschieben": "Déplacer l'onglet sélectionné",
+    "Suche ist jetzt ein Lupen-Knopf oben (neben dem Zahnrad), und „Aufgaben“ steht direkt hinter „Kalender“": "La recherche est maintenant un bouton en forme de loupe en haut (à côté de la roue dentée), et « Tâches » se trouve juste après « Calendrier »",
+    "Suche (Strg + K)": "Rechercher (Ctrl + K)",
+    "Einstellungen sind jetzt ein Zahnrad-Knopf oben zwischen „+ Neu“ und „?“ statt eines Reiters (am Handy weiter unter „Mehr“)": "Les réglages sont maintenant un bouton en forme de roue dentée en haut, entre « + Nouveau » et « ? », au lieu d'un onglet (sur mobile, toujours sous « Plus »)",
+    "Schnell-Eingabe: „ab 14 Uhr … bis 17 Uhr“ ergibt ein Zeitfenster, und grobe Angaben wie „nächste Woche“, „im Dezember“, „Ende des Monats“ oder „3. Dezember“ setzen jetzt das richtige Datum": "Saisie rapide : « à partir de 14 h … jusqu'à 17 h » donne maintenant une plage horaire, et des indications approximatives comme « la semaine prochaine », « en décembre », « fin du mois » ou « 3 décembre » fixent maintenant la bonne date",
     "Ruhigerer Seitenwechsel: Die Seite springt nicht mehr seitlich, wenn der Scrollbalken erscheint oder verschwindet": "Changements de page plus calmes : la page ne saute plus sur le côté quand la barre de défilement apparaît ou disparaît",
     "Eigene Farben: Die zweite Farbschema-Auswahl bei „Programmfarben“ ist weggefallen – die Farben gelten für das Farbschema, das du oben unter „Farbschema“ gewählt hast": "Couleurs personnalisées : la seconde sélection du jeu de couleurs sous « Couleurs du programme » a disparu – les couleurs valent pour le jeu choisi en haut sous « Jeu de couleurs »",
     "Eigene Farben: Ziehen im Farbwähler ist ein einziger Schritt für „Rückgängig“": "Couleurs personnalisées : glisser dans le sélecteur de couleur compte pour une seule étape de « Annuler »",
@@ -15524,8 +15587,72 @@ function sucheTab() {
 /* ============================================================
    Oberfläche, Teil 4: Einstellungen, Daten, Kopfzeile, Start
    ============================================================ */
-const REITER = [["heute", "Heute"], ["kalender", "Kalender"], ["plus", "+"], ["stundenplan", "Stundenplan"], ["faecher", "Lernziele"], ["noten", "Noten"], ["fristen", "Aufgaben"], ["geld", "Einkauf & Geld"], ["statistik", "Statistik"], ["suche", "Suche"], ["einstellungen", "Einstellungen"]];
+const REITER = [["heute", "Heute"], ["kalender", "Kalender"], ["fristen", "Aufgaben"], ["plus", "+"], ["stundenplan", "Stundenplan"], ["faecher", "Lernziele"], ["noten", "Noten"], ["geld", "Einkauf & Geld"], ["statistik", "Statistik"], ["suche", "Suche"], ["einstellungen", "Einstellungen"]];
 const FIX = new Set(["heute", "kalender", "plus", "einstellungen"]);
+const REITER_STANDARD = REITER.map(r => r[0]);   // Ausgangsreihenfolge (gilt, solange keine eigene gespeichert ist)
+function reiterReihenfolgeAnwenden() {
+  const gespeichert = Array.isArray(einst.reiter_reihenfolge) ? einst.reiter_reihenfolge : [];
+  const rang = k => { const i = gespeichert.indexOf(k); return i >= 0 ? i : 1000 + REITER_STANDARD.indexOf(k); };   // neue, unbekannte Reiter hinten in Standardreihenfolge
+  REITER.sort((a, b) => rang(a[0]) - rang(b[0]));
+}
+/* teilKeys: neue Reihenfolge einiger Reiter (z. B. nur der sichtbaren); alle anderen behalten ihren Platz */
+function reiterNeuOrdnen(teilKeys) {
+  const jetzt = REITER.map(r => r[0]), menge = new Set(teilKeys); let i = 0;
+  const neu = jetzt.map(k => menge.has(k) ? teilKeys[i++] : k);
+  aendern(() => { einst.reiter_reihenfolge = neu; reiterReihenfolgeAnwenden(); });
+}
+document.addEventListener("keydown", e => { if (e.key === "Alt") document.documentElement.classList.add("alt-an"); });
+document.addEventListener("keyup", e => { if (e.key === "Alt") document.documentElement.classList.remove("alt-an"); });
+window.addEventListener("blur", () => document.documentElement.classList.remove("alt-an"));
+/* Reiter per Ziehen umsortieren: Maus/Stift bei gedrückter Alt-Taste, Finger nach langem Druck; Tastatur: Alt + Umschalt + Pfeil */
+function reiterZiehbar(behaelter, auswahl) {
+  const eintraege = () => [...behaelter.children].filter(x => x.dataset && x.dataset.reiter);
+  behaelter.addEventListener("keydown", ev => {
+    if (!ev.altKey || !ev.shiftKey || !/^Arrow(Left|Right|Up|Down)$/.test(ev.key)) return;
+    const el = ev.target.closest("[data-reiter]"); if (!el || !behaelter.contains(el)) return;
+    ev.preventDefault();
+    const liste = eintraege(), i = liste.indexOf(el), j = i + (/Left|Up/.test(ev.key) ? -1 : 1);
+    if (j < 0 || j >= liste.length) return;
+    liste.splice(i, 1); liste.splice(j, 0, el);
+    const k = el.dataset.reiter; reiterNeuOrdnen(liste.map(x => x.dataset.reiter));
+    setTimeout(() => { const n = document.querySelector(`${auswahl} [data-reiter="${k}"]`); if (n) n.focus(); }, 0);
+  });
+  behaelter.addEventListener("pointerdown", ev => {
+    const el = ev.target.closest("[data-reiter]"); if (!el || ev.button !== 0 || !behaelter.contains(el)) return;
+    if (ev.pointerType !== "touch" && !ev.altKey) return;   // mit Maus oder Stift nur bei gedrückter Alt-Taste, sonst ist es ein normaler Klick
+    const finger = ev.pointerType === "touch", x0 = ev.clientX, y0 = ev.clientY; let ziehen = false, geist = null, timer = 0;
+    const sperre = e => e.preventDefault();
+    const senkrecht = () => { const l = eintraege(); if (l.length < 2) return false; const a = l[0].getBoundingClientRect(), b = l[1].getBoundingClientRect(); return b.top > a.bottom - 4; };
+    const starten = () => {
+      ziehen = true; unterdrueckeKlick = true; el.classList.add("zieht"); document.body.classList.add("reiter-zieht");
+      const r = el.getBoundingClientRect(); geist = el.cloneNode(true); geist.classList.add("reiter-geist"); geist.removeAttribute("data-reiter");
+      geist.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;margin:0;pointer-events:none;z-index:70`;
+      geist._dx = x0 - r.left; geist._dy = y0 - r.top; document.body.append(geist);
+      document.addEventListener("touchmove", sperre, { passive: false });
+    };
+    const bew = e2 => {
+      if (!ziehen) {
+        const d = Math.hypot(e2.clientX - x0, e2.clientY - y0);
+        if (finger) { if (d > 8) ende(true); return; }   // Finger wandert vor dem langen Druck: normales Scrollen
+        if (d < 6) return; starten();
+      }
+      geist.style.left = e2.clientX - geist._dx + "px"; geist.style.top = e2.clientY - geist._dy + "px";
+      const sk = senkrecht(), pos = sk ? e2.clientY : e2.clientX; let vorher = null;
+      for (const x of eintraege().filter(x => x !== el)) { const r = x.getBoundingClientRect(), mitte = sk ? r.top + r.height / 2 : r.left + r.width / 2; if (pos < mitte) { vorher = x; break; } }
+      if (vorher !== el.nextElementSibling) behaelter.insertBefore(el, vorher);
+    };
+    const hoch = () => ende(false), abbruch = () => ende(true);
+    const ende = abgebrochen => {
+      clearTimeout(timer);
+      document.removeEventListener("pointermove", bew); document.removeEventListener("pointerup", hoch); document.removeEventListener("pointercancel", abbruch); document.removeEventListener("touchmove", sperre);
+      if (!ziehen) return;
+      ziehen = false; if (geist) geist.remove(); el.classList.remove("zieht"); document.body.classList.remove("reiter-zieht"); setTimeout(() => { unterdrueckeKlick = false; }, 80);
+      if (abgebrochen) render(); else reiterNeuOrdnen(eintraege().map(x => x.dataset.reiter));
+    };
+    document.addEventListener("pointermove", bew); document.addEventListener("pointerup", hoch); document.addEventListener("pointercancel", abbruch);
+    if (finger) timer = setTimeout(starten, 420);
+  });
+}
 
 function sektion(titel, ...inh) { return h("div", { class: "card" }, h("h3", null, titel), h("div", { style: "display:flex;flex-direction:column;gap:12px" }, inh)); }
 function setzen(key, wert, neu = false) { ui.gespeichert = new Date(); aendern(() => { einst[key] = wert; }, !neu); if (neu) return; }
@@ -15548,7 +15675,8 @@ function einstellungenTab() {
   const stufe = auswahl([["Klein", "Klein"], ["Normal", "Normal"], ["Groß", "Groß"], ["Sehr groß", "Sehr groß"]], einst.schrift_stufe);
   stufe.onchange = () => setzen("schrift_stufe", stufe.value, true);
   /* Reiter */
-  const reiter = h("div", { class: "tog" }, REITER.filter(r => !FIX.has(r[0])).map(([k, l]) => h("button", { class: einst.reiter_aus.includes(k) ? "" : "on", onclick: () => aendern(() => { const i = einst.reiter_aus.indexOf(k); if (i >= 0) einst.reiter_aus.splice(i, 1); else einst.reiter_aus.push(k); }) }, l)));
+  const reiter = h("div", { class: "tog reiter-liste" }, REITER.filter(r => !FIX.has(r[0])).map(([k, l]) => h("button", { class: einst.reiter_aus.includes(k) ? "" : "on", "data-reiter": k, onclick: () => unterdrueckeKlick ? null : aendern(() => { const i = einst.reiter_aus.indexOf(k); if (i >= 0) einst.reiter_aus.splice(i, 1); else einst.reiter_aus.push(k); }) }, l)));
+  reiterZiehbar(reiter, '.reiter-liste');
   /* Kategorien */
   const kat = h("div", { class: "list" });
   einst.kategorien.forEach((k, i) => {
@@ -15588,7 +15716,9 @@ function einstellungenTab() {
     const e = einstellungenLaden({}); e.willkommen_gezeigt = true; einst = e; daten.einstellungen = e; spracheSetzen(e.sprache); ui.gespeichert = new Date(); pfSchema = null; ferienAktualisieren(true); wetterAktualisieren(true);
   }), "Zurücksetzen") }, "Auf Standard zurücksetzen"));
   const KATS = [
-    ["reiter", "🧭", "Menü und Reiter", () => [leistenSektion(), sektion("Angezeigte Reiter", reiter)]],
+    ["reiter", "🧭", "Menü und Reiter", () => [leistenSektion(), sektion("Angezeigte Reiter", reiter,
+      h("p", { class: "mut small", style: "margin:0" }, "Tipp: Halte Alt gedrückt und zieh die Reiter mit der linken Maustaste an eine andere Stelle, um die Reihenfolge zu ändern (am Handy: lange gedrückt halten)."),
+      (einst.reiter_reihenfolge || []).length ? h("div", { class: "row" }, h("button", { class: "btn sm", onclick: () => aendern(() => { einst.reiter_reihenfolge = []; reiterReihenfolgeAnwenden(); }) }, "Reihenfolge zurücksetzen")) : null)]],
     ["aussehen", "🎨", "Aussehen", () => [sektion("Sprache", feld("Sprache der Oberfläche", sp)),
       sektion("Darstellung", feld("Farbschema", design), schalter("Reiter an der Seite (links) statt oben", "reiter_seite"), schalter("Weiche Übergänge beim Wechseln der Reiter", "reiter_animation"), feld("Schriftgröße", stufe)),
       programmfarbenSektion()]],
@@ -15813,6 +15943,12 @@ function subNav(liste, aktiv, wahl) {
 
 /* ---------- Schnell-Eingabe: "Mathe-Klausur Freitag 14 Uhr" ---------- */
 const TAG_NAMEN = { montag: 0, dienstag: 1, mittwoch: 2, donnerstag: 3, freitag: 4, samstag: 5, sonntag: 6, monday: 0, tuesday: 1, wednesday: 2, thursday: 3, friday: 4, saturday: 5, sunday: 6 };
+/* Monatsnamen für die Schnell-Eingabe ("im Dezember", "3. Dez", "end of May") */
+const MONATE_VOLL = { januar: 0, "jänner": 0, februar: 1, "märz": 2, maerz: 2, april: 3, mai: 4, juni: 5, juli: 6, august: 7, september: 8, oktober: 9, november: 10, dezember: 11,
+  january: 0, february: 1, march: 2, may: 4, june: 5, july: 6, october: 9, december: 11 };
+const MONATE_KURZ = { jan: 0, feb: 1, "mär": 2, mrz: 2, apr: 3, jun: 5, jul: 6, aug: 7, sep: 8, sept: 8, okt: 9, oct: 9, nov: 10, dez: 11, dec: 11 };
+const MONAT_ALLE = Object.assign({}, MONATE_VOLL, MONATE_KURZ);
+const monatMuster = o => Object.keys(o).sort((a, b) => b.length - a.length).join("|");
 const FUELLWOERTER = new Set(["am", "um", "bis", "von", "für", "fuer", "ab", "den", "dem", "in", "nächsten", "naechsten", "kommenden", "dann", "und", "at", "on", "for", "to", "from", "next", "the", "and", "until"]);
 function schnellParsen(text, jetzt = new Date(), kategorien = ["Uni"]) {
   const tag0 = new Date(jetzt.getFullYear(), jetzt.getMonth(), jetzt.getDate(), 12);
@@ -15850,6 +15986,11 @@ function schnellParsen(text, jetzt = new Date(), kategorien = ["Uni"]) {
     [/\b(?:um|at)\s+(\d{1,2})(?:[.:](\d{2}))?(?![\d.,:])/, false]]) {
     const g = zeitSuchen(re, ber); if (g) { [zs, ze] = g; break; }
   }
+  if (zs && !ze) {   // „ab 14 Uhr muss ich X machen bis 17 Uhr“: das Ende steht getrennt im Satz
+    let mEnde = nimm(/\b(?:bis|until)\s+(?:um\s+)?(\d{1,2})(?:[:.](\d{2}))?\s*(uhr|am|pm)\b/i);
+    if (mEnde) ze = sm(ampm(mEnde[1], /^[ap]m$/i.test(mEnde[3]) ? mEnde[3] : ""), mEnde[2]);
+    else if ((mEnde = nimm(/\b(?:bis|until)\s+(?:um\s+)?(\d{1,2}):(\d{2})(?![\d:.])/i))) ze = sm(mEnde[1], mEnde[2]);
+  }
   if (zs) {
     e.uhrzeit = `${pad(zs[0])}:${pad(zs[1])}`;
     if (ze) { const min = (ze[0] * 60 + ze[1]) - (zs[0] * 60 + zs[1]); if (min > 0) e.dauer = min; }
@@ -15869,7 +16010,35 @@ function schnellParsen(text, jetzt = new Date(), kategorien = ["Uni"]) {
     if (d.getMonth() === +m[2] - 1 && d.getDate() === +m[1]) { tag = d; if (!m[3] && tag < tag0) tag = new Date(j + 1, +m[2] - 1, +m[1], 12); }
     else datumFehler = `${m[1]}.${m[2]}.${m[3] || ""}`;
   }
+  if (!tag) {
+    m = nimm(new RegExp(`(?<![\\d.])(\\d{1,2})\\.?\\s*(${monatMuster(MONAT_ALLE)})\\.?(?:\\s+(\\d{4}))?(?![\\wäöüÄÖÜß])`, "i"));
+    if (m) {
+      const mi = MONAT_ALLE[m[2].toLowerCase()], j = m[3] ? +m[3] : tag0.getFullYear(), dm = new Date(j, mi, +m[1], 12);
+      if (dm.getMonth() === mi && dm.getDate() === +m[1]) { tag = dm; if (!m[3] && tag < tag0) tag = new Date(j + 1, mi, +m[1], 12); }
+      else datumFehler = `${m[1]}. ${m[2]}`;
+    }
+  }
   if (!tag) { m = nimm(/\bin\s+(\d{1,3})\s*(tagen|tage|tag|wochen|woche|days?|weeks?)\b/i); if (m) tag = addDays(tag0, +m[1] * (/^w/i.test(m[2]) ? 7 : 1)); }
+  if (!tag) {   // grobe Zeitangaben: die Frist ist das Ende des Zeitraums (Wochen: Freitag), „Anfang“ der 5., „Mitte“ der 15.
+    const freitag = n => addDays(tag0, 4 - wochentagNr(tag0) + 7 * n);   // Freitag der Woche (0 = diese, 1 = nächste, 2 = übernächste)
+    const wochentagIn = n => { const x = nimm(new RegExp(`\\b(${Object.keys(TAG_NAMEN).join("|")})\\b`, "i")); return x ? addDays(tag0, 7 * n - wochentagNr(tag0) + TAG_NAMEN[x[1].toLowerCase()]) : freitag(n); };
+    const grenze = "(?<![\\wäöüß])", ende = "(?![\\wäöüß])";
+    if (nimm(new RegExp(`${grenze}(?:bis\\s+)?(?:übern(?:ä|ae)chste[nrms]?\\s+woche|week\\s+after\\s+next)${ende}`, "i"))) tag = wochentagIn(2);
+    else if (nimm(new RegExp(`${grenze}(?:bis\\s+)?(?:(?:n(?:ä|ae)chste[nrms]?|kommende[nrms]?)\\s+woche|next\\s+week)${ende}`, "i"))) tag = wochentagIn(1);
+    else if (nimm(new RegExp(`${grenze}(?:bis\\s+)?(?:diese[nrms]?\\s+woche|this\\s+week|ende\\s+(?:der|dieser)\\s+woche|end\\s+of\\s+(?:the|this)\\s+week)${ende}`, "i"))) { tag = wochentagIn(0); if (tag < tag0) tag = tag0; }
+    else if (nimm(new RegExp(`${grenze}(?:bis\\s+)?(?:(?:n(?:ä|ae)chste[nrms]?|kommende[nrms]?)\\s+monat|next\\s+month)${ende}`, "i"))) tag = new Date(tag0.getFullYear(), tag0.getMonth() + 2, 0, 12);
+    else if (nimm(new RegExp(`${grenze}(?:bis\\s+)?(?:diese[nrms]?\\s+monat|this\\s+month|ende\\s+(?:des\\s+)?monats|end\\s+of\\s+(?:the\\s+|this\\s+)?month)${ende}`, "i"))) tag = new Date(tag0.getFullYear(), tag0.getMonth() + 1, 0, 12);
+    else if (nimm(new RegExp(`${grenze}(?:am\\s+|dieses\\s+|diesem\\s+|this\\s+)?(?:wochenende|weekend)${ende}`, "i"))) tag = addDays(tag0, Math.max(5 - wochentagNr(tag0), 0));
+    else {
+      const mm = rest.match(new RegExp(`${grenze}(?:(bis\\s+(?:zum\\s+|spätestens\\s+)?|im\\s+|zum\\s+|in\\s+|by\\s+|until\\s+)?(?:(anfang|mitte|ende|early|mid|late|beginning\\s+of|end\\s+of)\\s+(?:des\\s+|im\\s+|the\\s+)?)?)(${monatMuster(MONATE_VOLL)})${ende}`, "i"));
+      if (mm && (mm[1] || mm[2])) {   // „im Dezember“, „Ende Dezember“ – ein einzelnes Wort „Dezember“ bleibt im Namen
+        const mi = MONATE_VOLL[mm[3].toLowerCase()], mod = (mm[2] || "").toLowerCase(), j = mi < tag0.getMonth() ? tag0.getFullYear() + 1 : tag0.getFullYear();
+        const letzter = new Date(j, mi + 1, 0, 12).getDate(), wunsch = /anfang|early|beginning/.test(mod) ? 5 : /mitte|mid/.test(mod) ? 15 : letzter;
+        tag = new Date(j, mi, Math.min(wunsch, letzter), 12); if (tag < tag0) tag = tag0;   // laufender Monat: nicht in die Vergangenheit
+        rest = rest.slice(0, mm.index) + " " + rest.slice(mm.index + mm[0].length);
+      }
+    }
+  }
   if (!tag) for (const [wort, v] of [["übermorgen", 2], ["uebermorgen", 2], ["day after tomorrow", 2], ["morgen", 1], ["tomorrow", 1], ["heute", 0], ["today", 0]]) if (nimm(new RegExp(`(?<![\\wäöüÄÖÜß])${wort}(?![\\wäöüÄÖÜß])`, "i"))) { tag = addDays(tag0, v); break; }
   if (!tag) { m = nimm(new RegExp(`\\b(${Object.keys(TAG_NAMEN).join("|")})\\b`, "i")); if (m) tag = addDays(tag0, ((TAG_NAMEN[m[1].toLowerCase()] - wochentagNr(tag0)) % 7 + 7) % 7 || 7); }
   if (!tag && e.uhrzeit) { const [hh, mm] = e.uhrzeit.split(":").map(Number); tag = new Date(tag0.getFullYear(), tag0.getMonth(), tag0.getDate(), hh, mm) >= jetzt ? tag0 : addDays(tag0, 1); }
@@ -16080,11 +16249,13 @@ function einkaufAbschluss() {
 
 /* ---------- Kopf, Rahmen, Start ---------- */
 function navKnoepfe(nav) {
-  for (const [k, l] of REITER) if (k !== "plus" && (FIX.has(k) || !einst.reiter_aus.includes(k) || (k === "suche" && ui._sucheTemp))) nav.append(h("button", { class: ui.tab === k ? "on" : "", onclick: () => {
+  for (const [k, l] of REITER) if (k !== "plus" && k !== "einstellungen" && k !== "suche" && (FIX.has(k) || !einst.reiter_aus.includes(k) || (k === "suche" && ui._sucheTemp))) nav.append(h("button", { class: ui.tab === k ? "on" : "", "data-reiter": k, onclick: () => {
+    if (unterdrueckeKlick) return;
     if (k === "plus") return eintragDialog({ tag: ui.tab === "kalender" ? ui.tag : heute() });
     if (k !== "suche") ui._sucheTemp = false;
     ui.tab = k; uiSpeichern(); render(); window.scrollTo(0, 0);
   } }, l));
+  reiterZiehbar(nav, nav.classList.contains("sidenav") ? ".sidenav" : "header .nav");
   return nav;
 }
 function kopf() {
@@ -16093,6 +16264,16 @@ function kopf() {
   logo.innerHTML = '<svg viewBox="0 0 512 512" width="36" height="36" aria-hidden="true"><rect width="512" height="512" rx="114" fill="var(--acc)"/><circle cx="256" cy="256" r="150" fill="none" stroke="var(--acc-fg)" stroke-width="54"/><g stroke="var(--acc-fg)" stroke-width="40" stroke-linecap="round"><path d="M194 222h124"/><path d="M194 300h124"/></g></svg><span class="osa-name"><b><i>O</i>pen</b><b><i>S</i>tudent</b><b><i>A</i>genda</b></span>';
   return h("header", { class: "top" }, h("div", { class: "wrap bar" }, logo,
     h("button", { class: "btn pri kopf-plus", title: "Neuer Eintrag", "aria-label": "Neuer Eintrag", onclick: () => eintragDialog({ tag: ui.tab === "kalender" ? ui.tag : heute() }) }, "+ Neu"),
+    (!einst.reiter_aus.includes("suche") || ui._sucheTemp) ? (() => {
+      const b = h("button", { class: "btn ghost kopf-suche" + (ui.tab === "suche" ? " on" : ""), title: "Suche (Strg + K)", "aria-label": "Suche", onclick: () => suchFokus() });
+      b.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>';
+      return b;
+    })() : null,
+    (() => {
+      const b = h("button", { class: "btn ghost kopf-einst" + (ui.tab === "einstellungen" ? " on" : ""), title: "Einstellungen", "aria-label": "Einstellungen", onclick: () => reiterOeffnen("einstellungen") });
+      b.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+      return b;
+    })(),
     h("button", { class: "btn ghost", title: "Tastenkürzel und Tipps (F1)", onclick: hilfeDialog }, "?"),
     h("button", { class: "btn ghost", title: "Letzte Änderung rückgängig", disabled: !verlauf.length, onclick: rueckgaengig }, R("↶ " + t("Rückgängig") + (verlauf.length ? ` (${verlauf.length})` : "")))), nav);
 }
@@ -16518,7 +16699,7 @@ function hilfeDialog() {
   const zeile = (k, tx) => h("div", { class: "row", style: "gap:14px;margin:3px 0" }, h("b", { style: "width:150px;color:var(--acc);flex:none" }, R(k)), h("span", null, tx));
   dialog("Tastenkürzel und Tipps", [
     h("h3", null, "Tastenkürzel"),
-    zeile(`${alt} + N`, "Schnell etwas hinzufügen (von überall)"), zeile(`${strg} + K`, "Suchen"), zeile(`${alt} + 1 … 9`, "Zum 1. … 9. sichtbaren Reiter wechseln"), zeile(`${alt} + ,`, "Einstellungen öffnen"),
+    zeile(`${alt} + N`, "Schnell etwas hinzufügen (von überall)"), zeile(`${strg} + K`, "Suchen"), zeile(`${alt} + 1 … 9`, "Zum 1. … 9. sichtbaren Reiter wechseln"), zeile(`${alt} + ,`, "Einstellungen öffnen"), zeile(`${alt} + ${t("Ziehen")}`, "Reiter mit gedrückter linker Maustaste an eine andere Stelle ziehen (Reihenfolge ändern)"), zeile(`${alt} + ${t("Umschalt")} + ←/→`, "Ausgewählten Reiter verschieben"),
     zeile(`${strg} + Z`, "Letzte Änderung rückgängig machen"), zeile("F1", "Diese Hilfe"),
     h("h3", { style: "margin-top:14px" }, "Schnell-Eingabe: so schreibst du"),
     ...[["Mathe-Klausur Freitag 14 Uhr", "Termin am nächsten Freitag"], ["Lernen morgen 9-11 Uhr #Uni", "2 Stunden, Kategorie Uni"], ["Zahnarzt 3.12. um 8:30", "mit Datum und Uhrzeit"], ["Wäsche waschen in 3 Tagen", "Aufgabe ohne Uhrzeit"], ["Training heute 18 Uhr für 90 min", "mit Dauer"], ["Referat vorbereiten !", "Ausrufezeichen = wichtig"]].map(([a, b]) => h("div", { class: "row", style: "gap:14px;margin:3px 0" }, h("b", { style: "width:250px;flex:none" }, R(t(a))), h("span", { class: "mut" }, b))),
@@ -16532,7 +16713,7 @@ function hilfeDialog() {
     h("p", { class: "mut small", style: "margin:8px 0 0" }, "Beim Empfangen werden die Daten auf dem empfangenden Gerät ersetzt – mit „Rückgängig“ holst du den alten Stand zurück.")], [{ text: "Schließen", art: "pri" }], { breit: true });
 }
 function reiterNr(n) {
-  const liste = REITER.filter(([k]) => k !== "plus" && (FIX.has(k) || !einst.reiter_aus.includes(k) || (k === "suche" && ui._sucheTemp))), z = liste[n - 1]; if (!z) return;
+  const liste = REITER.filter(([k]) => k !== "plus" && k !== "einstellungen" && k !== "suche" && (FIX.has(k) || !einst.reiter_aus.includes(k) || (k === "suche" && ui._sucheTemp))), z = liste[n - 1]; if (!z) return;
   ui.tab = z[0]; uiSpeichern(); render(); window.scrollTo(0, 0);
 }
 function suchFokus() {
@@ -16716,6 +16897,7 @@ function willkommenDialog() {
     if (seite === 2) {
       const namen = Object.fromEntries(REITER.map(([k, l]) => [k, l])), hilfe = { stundenplan: "deine Vorlesungen und Kurse", faecher: "Wochenziele je Fach, Fokus-Timer", noten: "Noten und ECTS-Punkte", fristen: "Aufgaben mit Frist und Checkliste", geld: "Einkaufsliste und Budget", statistik: "Auswertungen deiner Woche", suche: "alles durchsuchen (Strg + K geht immer)" };
       return [h("h2", null, "Welche Reiter brauchst du?"), h("p", { class: "mut", style: "margin:0" }, "Weniger Reiter sind übersichtlicher. Die wichtigsten (Heute, Kalender) sind immer da. Den Rest kannst du jederzeit in den Einstellungen ein- oder ausblenden."),
+        h("p", { class: "mut", style: "margin:0" }, "Tipp: Die Reihenfolge änderst du jederzeit: Alt gedrückt halten und einen Reiter mit der linken Maustaste an eine andere Stelle ziehen (am Handy in den Einstellungen unter „Menü und Reiter“ lange gedrückt halten)."),
         ...Object.keys(w.reiter).map(k => { const c = h("input", { type: "checkbox", checked: w.reiter[k], onchange: () => { w.reiter[k] = c.checked; } }); return h("label", { class: "row", style: "cursor:pointer" }, c, h("b", { style: "width:140px" }, namen[k]), h("span", { class: "mut" }, hilfe[k] || "")); })];
     }
     if (seite === 3) {
@@ -16724,7 +16906,7 @@ function willkommenDialog() {
         h("label", { class: "row", style: "cursor:pointer" }, bs, "Ein paar Beispiel-Einträge anlegen, damit du siehst, wie alles aussieht"), feld("Ort für das Wetter in der Wochenansicht (optional)", ort), h("p", { class: "mut small", style: "margin:0" }, "Der Ortsname wird dafür an den Wetterdienst Open-Meteo geschickt."),
         h("div", { class: "row" }, h("button", { class: "btn", onclick: icsDateiWaehlen }, "Uni-Stundenplan importieren (.ics) …"))];
     }
-    return [h("h2", null, "Fertig! So findest du dich zurecht"), ...[["Heute", "dein Tag auf einen Blick; oben tippst du schnell etwas ein (Alt + N)"], ["Woche, Monat, Jahr", "dein Kalender; im Wochenraster Termine ziehen und verschieben"], ["+ Neu", "neuen Termin, neue Aufgabe oder Essen anlegen (oben rechts, am Handy unten in der Mitte)"], ["Stundenplan", "deine Vorlesungen und Kurse"], ["Lernziele", "Wochenziele je Fach und der Fokus-Timer"], ["Noten", "Noten, Notenschnitt und ECTS-Punkte"], ["Aufgaben", "Aufgaben mit Frist und als einfache Checkliste"], ["Einkauf & Geld", "Einkaufsliste, Budget und Einkauf abschließen"], ["Einstellungen", "Aussehen, Erinnerungen, Import und mehr"], ["Anderes Gerät", "Einstellungen › Daten und Export › Auf anderes Gerät übertragen: deine Einträge per QR-Code vom PC aufs Handy (oder umgekehrt), ganz ohne Internet"]]
+    return [h("h2", null, "Fertig! So findest du dich zurecht"), ...[["Heute", "dein Tag auf einen Blick; oben tippst du schnell etwas ein (Alt + N)"], ["Woche, Monat, Jahr", "dein Kalender; im Wochenraster Termine ziehen und verschieben"], ["Aufgaben", "Aufgaben mit Frist und als einfache Checkliste"], ["+ Neu", "neuen Termin, neue Aufgabe oder Essen anlegen (oben rechts, am Handy unten in der Mitte)"], ["Stundenplan", "deine Vorlesungen und Kurse"], ["Lernziele", "Wochenziele je Fach und der Fokus-Timer"], ["Noten", "Noten, Notenschnitt und ECTS-Punkte"], ["Einkauf & Geld", "Einkaufsliste, Budget und Einkauf abschließen"], ["Einstellungen", "Aussehen, Erinnerungen, Import und mehr"], ["Anderes Gerät", "Einstellungen › Daten und Export › Auf anderes Gerät übertragen: deine Einträge per QR-Code vom PC aufs Handy (oder umgekehrt), ganz ohne Internet"]]
       .map(([a, b]) => h("div", { class: "row", style: "gap:14px;margin:2px 0" }, h("b", { style: "width:170px;color:var(--acc);flex:none" }, a), h("span", null, b)))];
   };
   const zeigen = () => {
@@ -16738,7 +16920,7 @@ function willkommenDialog() {
 let renderFehler = 0, letzterSchluessel = null, letzterUnter = null;
 function render() {
   const y = window.scrollY, app = $("#app"), fokus = document.activeElement, altPillen = pillenMerken();
-  themaAnwenden(); document.documentElement.lang = einst.sprache;
+  reiterReihenfolgeAnwenden(); themaAnwenden(); document.documentElement.lang = einst.sprache;
   try {
     if (einst.reiter_seite) app.replaceChildren(kopf(), h("div", { class: "wrap side" }, navKnoepfe(h("nav", { class: "sidenav" })), h("main", { class: "mainc" }, tabInhalt())), handyLeiste());
     else app.replaceChildren(kopf(), h("main", { class: "wrap" }, tabInhalt()), handyLeiste());

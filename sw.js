@@ -1,5 +1,5 @@
 /* Offline-Speicher der OSA-App. Die VERSION wird von "Handy-App aktualisieren.bat" automatisch erhöht. */
-const VERSION = "osa-v35";
+const VERSION = "osa-v40";
 const DATEIEN = ["./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
 /* cache: "no-cache" = immer bei GitHub nachfragen, ob es eine neuere Datei gibt (GitHub erlaubt sonst 10 Minuten Zwischenspeicher) */
 self.addEventListener("install", e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(DATEIEN.map(d => new Request(d, { cache: "no-cache" })))).then(() => self.skipWaiting())); });
