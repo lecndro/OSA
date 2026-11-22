@@ -12911,7 +12911,7 @@ const FARBPALETTE = {
 };
 const EINZEL_FELDER = {
   aufgabe: ["name", "dauer", "prio", "kategorie", "fach", "raum", "dozent", "uhrzeit", "notiz", "farbe"],
-  essen: ["gericht", "mahlzeit", "uhrzeit", "notiz", "farbe"]
+  essen: ["gericht", "mahlzeit", "uhrzeit", "notiz", "farbe", "kcal"]
 };
 
 const STANDARD_EINSTELLUNGEN = {
@@ -12920,7 +12920,7 @@ const STANDARD_EINSTELLUNGEN = {
   mahlzeit_zeiten: { "Frühstück": "08:00", "Mittagessen": "12:30", "Abendessen": "18:30", "Snack": "15:30" },
   erinnerung_an: true, erinnerung_minuten: 15, erinnerung_essen: false,
   essen_an: true,   // Mahlzeiten im Kalender planen (aus: kein „Essen“ beim Anlegen, Mahlzeiten nicht im Kalender; Daten bleiben)
-  reiter_aus: [], reiter_reihenfolge: [], reiter_seite: false, leiste: ["heute", "kalender", "fristen"], benachrichtigung: false, filter_aus: [], budget_essen: false, rezepte_an: false, preis_vorschlag: true, ects_ziel: 180, budget_limit: 0, schrift_stufe: "Normal", reiter_animation: true, timer_fokus: 25, timer_pause: 5, wetter_an: false, wetter_ort: "", einkauf_erinnerung: false, einkauf_tag: "Samstag", einkauf_zeit: "10:00", willkommen_gezeigt: false,
+  reiter_aus: [], reiter_reihenfolge: [], reiter_seite: false, leiste: ["heute", "kalender", "fristen"], benachrichtigung: false, filter_aus: [], budget_essen: false, reiter_getrennt: false, stat_aus: [], kalorien_an: true, kalorien_ziel: 0, rezepte_an: true, preis_vorschlag: true, ects_ziel: 180, budget_limit: 0, schrift_stufe: "Normal", reiter_animation: true, timer_fokus: 25, timer_pause: 5, wetter_an: false, wetter_ort: "", einkauf_erinnerung: false, einkauf_tag: "Samstag", einkauf_zeit: "10:00", willkommen_gezeigt: false,
   ferien_art: "aus", ferien_land: "DE", ferien_region: "", ferien_ics: "",
   feiertage_land: startFeiertagsLand(),   // "DE", "AT", "CH", "FR", "ES", "IT", "NL", "BE", "GB", "US" oder "aus"
   feiertage_region: "",                   // nur Deutschland: "" = bundesweit, "DE-BY" usw. = mit Landesfeiertagen
@@ -12932,7 +12932,7 @@ const STANDARD_EINSTELLUNGEN = {
 
 /* ---------- Daten laden, ergänzen, speichern ---------- */
 function leereDaten() {
-  return { aufgaben: [], essen: [], einstellungen: {}, rezepte: {}, gericht_mahlzeit: {}, faecher: {}, vorraete: "", preise: "", budget: [], noten: [], einkauf: [] };
+  return { aufgaben: [], essen: [], einstellungen: {}, rezepte: {}, gericht_mahlzeit: {}, faecher: {}, vorraete: "", preise: "", kalorien: "", rezept_portionen: {}, budget: [], noten: [], einkauf: [] };
 }
 function einstellungenLaden(daten) {
   const e = JSON.parse(JSON.stringify(STANDARD_EINSTELLUNGEN));
@@ -12944,8 +12944,9 @@ function einstellungenLaden(daten) {
   if (e.design === "pastell" || e.design === "hell") e.design = "ozean";   // alte Farbschemata "Pastell" und das lila "Hell" (Lavendel) gibt es nicht mehr
   if (e.design !== "auto" && !(e.design in THEMEN)) e.design = "auto";
   const roh = daten.einstellungen || {};
-  if (!("rezepte_an" in roh)) e.rezepte_an = Object.keys(daten.rezepte || {}).length > 0 || !!String(daten.vorraete || "").trim() || !!String(daten.preise || "").trim();
+  if (!("rezepte_an" in roh)) e.rezepte_an = true;   // beim ersten Start sind alle Reiter und Unterreiter aktiv
   const aus = Array.isArray(e.reiter_aus) ? e.reiter_aus.slice() : [];
+  if (!roh.reiter_getrennt) { e.reiter_getrennt = true; if (e.reiter_aus.includes("geld") && !e.reiter_aus.includes("essen")) e.reiter_aus = e.reiter_aus.concat("essen"); }   // früher ein Reiter „Einkauf & Geld“
   if (aus.includes("einkauf") || aus.includes("budget")) {          // früher zwei Reiter, jetzt "Einkauf & Geld"
     const beide = aus.includes("einkauf") && aus.includes("budget");
     e.reiter_aus = aus.filter(k => k !== "einkauf" && k !== "budget");
@@ -13334,6 +13335,132 @@ function rezeptKosten(daten, name) {
   }
   return [summe, fehlt];
 }
+/* ---------- Kalorien ----------
+   Geschätzt aus einer eingebauten Tabelle (kcal pro 100 g, ohne Internet). Eigene Werte (daten.kalorien) haben Vorrang.
+   Eintrag: [Suchwörter, kcal/100 g, { stk: g pro Stück, pck: g pro Packung/Dose, d: g pro ml, el: g pro EL }] */
+const KCAL_TABELLE = [
+  [["nudeln", "pasta", "spaghetti", "penne", "fusilli", "makkaroni", "farfalle", "tagliatelle", "bandnudeln", "lasagneplatten", "mienudeln", "asianudeln", "reisnudeln", "glasnudeln"], 350, { pck: 500 }],
+  [["reis", "basmatireis", "jasminreis", "risottoreis", "milchreis"], 350, { pck: 500, el: 12 }], [["couscous", "quinoa", "polenta", "bulgur", "hirse"], 355, { pck: 500, el: 12 }],
+  [["haferflocken"], 370, { el: 8, pck: 500 }], [["müsli", "muesli"], 370, { pck: 500, el: 10 }], [["cornflakes", "frühstücksflocken"], 375, { pck: 375, el: 5 }],
+  [["mehl", "weizenmehl", "dinkelmehl", "vollkornmehl"], 340, { el: 10, pck: 1000 }], [["speisestärke", "maisstärke"], 340, { el: 10 }], [["zucker", "puderzucker", "rohrzucker", "brauner zucker"], 400, { el: 12, pck: 1000 }],
+  [["brot", "vollkornbrot", "graubrot", "mischbrot"], 250, { stk: 45, pck: 500 }], [["toast", "toastbrot"], 260, { stk: 25, pck: 500 }], [["brötchen", "semmel", "semmeln"], 270, { stk: 60 }],
+  [["tortilla", "wrap", "wraps", "tortillas"], 300, { stk: 60 }], [["pizzateig", "blätterteig", "hefeteig"], 320, { pck: 270 }], [["hefe"], 100, { pck: 42 }],
+  [["kartoffel", "kartoffeln"], 75, { stk: 150 }], [["süßkartoffel", "süßkartoffeln"], 86, { stk: 300 }], [["pommes", "pommes frites"], 160, { pck: 750 }],
+  [["zwiebel", "zwiebeln", "rote zwiebel", "rote zwiebeln"], 40, { stk: 100 }], [["schalotte", "schalotten"], 70, { stk: 30 }], [["knoblauch", "knoblauchzehe", "knoblauchzehen"], 140, { stk: 50 }],
+  [["karotte", "karotten", "möhre", "möhren"], 40, { stk: 80 }], [["tomate", "tomaten", "kirschtomaten", "cherrytomaten", "rispentomaten"], 18, { stk: 100 }],
+  [["gurke", "gurken", "salatgurke"], 12, { stk: 400 }], [["paprika", "paprikaschote", "paprikaschoten"], 30, { stk: 160 }], [["zucchini"], 17, { stk: 250 }], [["lauch", "porree"], 30, { stk: 250 }],
+  [["champignons", "champignon", "pilze", "pilz"], 22, { stk: 20, pck: 250 }], [["avocado", "avocados"], 160, { stk: 150 }], [["brokkoli", "broccoli"], 34, { stk: 400 }], [["blumenkohl"], 25, { stk: 700 }],
+  [["aubergine", "auberginen"], 24, { stk: 300 }], [["spinat", "blattspinat"], 23, { pck: 450 }], [["salat", "kopfsalat", "eisbergsalat", "blattsalat", "feldsalat", "rucola"], 15, { stk: 300 }],
+  [["kohl", "weißkohl", "rotkohl", "spitzkohl"], 25, { stk: 1000 }], [["kürbis", "hokkaido"], 26, { stk: 1200 }], [["sellerie", "staudensellerie"], 20, { stk: 400 }], [["radieschen"], 15, { stk: 10 }],
+  [["spargel"], 20, { pck: 500 }], [["ingwer"], 80, { stk: 30 }], [["chili", "chilischote", "chilischoten"], 40, { stk: 10 }], [["mais"], 90, { pck: 285, el: 12 }],
+  [["erbsen"], 80, { pck: 300 }], [["bohnen", "kidneybohnen", "weiße bohnen"], 95, { pck: 240 }], [["kichererbsen"], 130, { pck: 240 }], [["linsen", "rote linsen"], 350, { pck: 500 }],
+  [["tofu"], 120, { pck: 200 }], [["tomatenmark"], 80, { el: 20, pck: 70 }], [["passierte tomaten", "dosentomaten", "gehackte tomaten", "pizzatomaten", "tomatensauce", "tomatensoße", "nudelsauce", "nudelsoße"], 30, { pck: 400 }],
+  [["banane", "bananen"], 90, { stk: 120 }], [["apfel", "äpfel"], 52, { stk: 150 }], [["birne", "birnen"], 57, { stk: 170 }], [["orange", "orangen", "apfelsine"], 47, { stk: 200 }],
+  [["mandarine", "mandarinen", "clementine", "clementinen"], 46, { stk: 80 }], [["zitrone", "zitronen"], 30, { stk: 100 }], [["limette", "limetten"], 30, { stk: 70 }],
+  [["erdbeeren", "erdbeere"], 32, { stk: 15 }], [["heidelbeeren", "blaubeeren", "himbeeren", "brombeeren"], 40, {}], [["weintrauben", "trauben"], 70, {}], [["kiwi", "kiwis"], 60, { stk: 80 }],
+  [["mango", "mangos"], 60, { stk: 350 }], [["pfirsich", "pfirsiche", "nektarine", "nektarinen"], 40, { stk: 150 }], [["pflaume", "pflaumen", "zwetschge", "zwetschgen"], 45, { stk: 40 }],
+  [["kirschen"], 60, { stk: 8 }], [["ananas"], 55, { stk: 900 }], [["melone", "wassermelone"], 35, { stk: 1500 }], [["datteln"], 280, { stk: 8 }], [["rosinen"], 300, { el: 12 }],
+  [["milch", "vollmilch", "h-milch"], 64, { d: 1.03 }], [["hafermilch", "haferdrink"], 45, { d: 1.03 }], [["sojamilch", "sojadrink", "mandelmilch"], 35, { d: 1.03 }], [["kokosmilch"], 170, { pck: 400, d: 1 }],
+  [["joghurt", "jogurt", "naturjoghurt"], 62, { pck: 150, el: 15 }], [["quark", "magerquark"], 70, { pck: 250, el: 20 }], [["skyr"], 63, { pck: 450 }],
+  [["frischkäse"], 250, { pck: 200, el: 20 }], [["sahne", "schlagsahne"], 300, { pck: 200, d: 1, el: 15 }], [["kochsahne"], 150, { pck: 200, d: 1 }], [["schmand", "creme fraiche", "crème fraîche", "saure sahne"], 240, { pck: 200, el: 20 }],
+  [["käse", "gouda", "emmentaler", "cheddar", "bergkäse"], 350, { pck: 200, stk: 20 }], [["parmesan"], 400, { el: 6, pck: 100 }], [["reibekäse", "geriebener käse", "streukäse"], 350, { pck: 200, el: 6 }],
+  [["mozzarella"], 250, { stk: 125, pck: 125 }], [["feta", "schafskäse", "hirtenkäse"], 260, { pck: 200 }], [["butter"], 740, { pck: 250, el: 15 }], [["margarine"], 720, { pck: 250, el: 15 }],
+  [["ei", "eier"], 143, { stk: 60 }], [["eigelb"], 350, { stk: 20 }], [["eiweiß"], 50, { stk: 30 }],
+  [["hähnchenbrust", "hühnerbrust", "hähnchenbrustfilet", "hähnchen", "huhn", "hühnchen"], 115, { pck: 400 }], [["pute", "putenbrust", "putenfleisch"], 105, { pck: 400 }],
+  [["rindfleisch", "rinderhack", "rindersteak"], 200, { pck: 400 }], [["hackfleisch", "hack", "gemischtes hack"], 250, { pck: 500 }], [["schweinefleisch", "schnitzel", "schweineschnitzel"], 200, { pck: 400 }],
+  [["schinken", "kochschinken"], 120, { stk: 20, pck: 100 }], [["speck", "bacon", "schinkenwürfel"], 400, { stk: 15, pck: 150 }], [["wurst", "bratwurst"], 300, { stk: 100 }],
+  [["würstchen", "wiener", "wienerle"], 280, { stk: 50 }], [["salami"], 450, { stk: 5, pck: 100 }], [["lachs", "lachsfilet"], 200, { stk: 125, pck: 250 }], [["thunfisch"], 130, { pck: 140 }],
+  [["garnelen", "shrimps"], 90, { pck: 200 }], [["fisch", "fischfilet", "forelle"], 100, { stk: 125 }],
+  [["öl", "olivenöl", "sonnenblumenöl", "rapsöl", "speiseöl", "kokosöl", "pflanzenöl"], 880, { d: 0.92, el: 14 }],
+  [["erdnüsse", "mandeln", "walnüsse", "cashews", "nüsse", "haselnüsse", "pistazien"], 600, { el: 10, pck: 200 }], [["erdnussbutter"], 600, { el: 15 }], [["nutella", "nussnougatcreme"], 540, { el: 15 }],
+  [["honig"], 305, { el: 20 }], [["marmelade", "konfitüre", "marmeladen"], 250, { el: 20 }], [["schokolade", "kuvertüre"], 540, { stk: 5, pck: 100 }], [["kakao", "kakaopulver"], 370, { el: 8 }],
+  [["ketchup", "tomatenketchup"], 100, { el: 17 }], [["senf"], 80, { el: 15 }], [["mayonnaise", "mayo"], 700, { el: 12 }], [["sojasoße", "sojasauce"], 60, { el: 15, d: 1.1 }], [["essig", "balsamico", "weißweinessig"], 20, { d: 1 }],
+  [["hummus"], 230, { el: 20 }], [["orangensaft", "o-saft", "apfelsaft", "saft", "multivitaminsaft"], 45, { d: 1.04 }], [["cola", "limonade"], 42, { d: 1.04 }], [["bier"], 43, { d: 1.01 }], [["wein", "rotwein", "weißwein"], 85, { d: 0.99 }],
+  [["wasser", "mineralwasser", "salz", "meersalz", "pfeffer", "gewürz", "gewürze", "paprikapulver", "curry", "currypulver", "zimt", "oregano", "thymian", "rosmarin", "basilikum", "petersilie", "schnittlauch", "kräuter", "dill", "kreuzkümmel", "kümmel", "muskat", "kaffee", "tee", "brühe", "gemüsebrühe", "backpulver", "vanille", "vanillezucker"], 0, {}]
+];
+const KCAL_MUSTER = /^(.+?)\s*[:=]\s*(\d+(?:[.,]\d+)?)\s*(?:kcal|kal)?\s*(?:(?:\/|pro)\s*(\d+(?:[.,]\d+)?)?\s*([A-Za-zÄÖÜäöüß]+\.?))?\s*$/i;
+function kalorienParsen(text) {   // „Name: 350 kcal/100 g“, „Ei: 75 kcal/Stk“ oder „Name: 120 kcal“ – wie bei den Preisen
+  const k = new Map();
+  for (const z of (text || "").split(/\r?\n/)) {
+    const m = z.trim().match(KCAL_MUSTER); if (!m) continue;
+    const name = m[1].trim().toLowerCase(), kcal = parseFloat(m[2].replace(",", "."));
+    if (!m[4]) { k.set(name + "|", kcal); continue; }
+    const einh = EINHEITEN[m[4].toLowerCase().replace(/\.$/, "")]; if (!einh) continue;
+    const menge = parseFloat((m[3] || "1").replace(",", ".")); if (menge <= 0) continue;
+    k.set(name + "|" + einh[0], kcal / (menge * einh[1]));
+  }
+  return k;
+}
+function kcalEintrag(name) {
+  const n = String(name || "").toLowerCase().replace(/[^a-zäöüß\s-]/g, " ").replace(/\s+/g, " ").trim(); if (!n) return null;
+  const woerter = n.split(/[\s-]+/).filter(Boolean); let best = null, score = 0;
+  for (const e of KCAL_TABELLE) for (const s of e[0]) {
+    let p = 0;
+    if (s === n) p = 1000 + s.length;
+    else if (s.includes(" ")) { if (n.includes(s)) p = s.length + 1; }
+    else if (woerter.some(w => w === s || (s.length >= 4 && (w.startsWith(s) || w.endsWith(s))))) p = s.length;
+    if (p > score) { score = p; best = e; }
+  }
+  return best;
+}
+function zutatKcal(eigene, zutat, einheit, menge) {   // → kcal (Zahl) oder null, wenn unbekannt
+  const k = zutatKosten(eigene, zutat, einheit, menge); if (k !== null) return k;
+  const e = kcalEintrag(zutat); if (!e) return null;
+  const [, pro100, o] = e;
+  if (pro100 === 0) return 0;
+  if (menge === null) return null;
+  const d = o.d || 1; let g = null;
+  if (einheit === "g") g = menge; else if (einheit === "ml") g = menge * d;
+  else if (einheit === "EL") g = menge * (o.el || 15 * d); else if (einheit === "TL") g = menge * (o.el || 15 * d) / 3;
+  else if (einheit === "Prise") g = menge * 0.5; else if (einheit === "Zehe") g = menge * 4;
+  else if (einheit === "Pck" || einheit === "Dose") g = o.pck ? menge * o.pck : null;
+  else if (einheit === "Bund") g = o.stk ? menge * o.stk : menge * 30;
+  else if (einheit === "Stk" || einheit === "") g = o.stk ? menge * o.stk : null;
+  return g === null ? null : g * pro100 / 100;
+}
+function kcalZeile(menge, einheit, name, k) {   // Eigenen Wert als Zeile für daten.kalorien (pro 100 g/ml bzw. pro Einheit)
+  const f = x => String(+x.toFixed(2)).replace(".", ",");
+  if (menge === null || !(menge > 0)) return `${name}: ${f(k)} kcal`;
+  if (einheit === "g") return `${name}: ${f(k / (menge / 100))} kcal/100 g`;
+  if (einheit === "ml") return `${name}: ${f(k / (menge / 100))} kcal/100 ml`;
+  return `${name}: ${f(k / menge)} kcal/${einheit || "Stk"}`;
+}
+function kalorienSetzen(text, name, zeile) {
+  const k = name.trim().toLowerCase(), zeilen = String(text || "").split(/\r?\n/).filter(z => { const m = z.trim().match(KCAL_MUSTER); return z.trim() && !(m && m[1].trim().toLowerCase() === k); });
+  zeilen.push(zeile); return zeilen.join("\n");
+}
+function rezeptPortionen(daten, name) {
+  const k = String(name || "").trim().toLowerCase();
+  for (const [n, p] of Object.entries(daten.rezept_portionen || {})) if (n.trim().toLowerCase() === k) return Math.max(1, Math.round(+p) || 1);
+  return 1;
+}
+function rezeptKalorien(daten, name) {   // → { summe, fehlt, zutaten, portionen, proPortion }
+  const rez = {}; for (const [k, v] of Object.entries(daten.rezepte || {})) rez[k.trim().toLowerCase()] = v;
+  const eigene = kalorienParsen(daten.kalorien), zl = zutatenParsen(rez[String(name || "").trim().toLowerCase()] || "");
+  let summe = 0, fehlt = 0;
+  for (const [menge, einheit, zutat] of zl) { const k = zutatKcal(eigene, zutat, einheit, menge); if (k === null) fehlt++; else summe += k; }
+  const portionen = rezeptPortionen(daten, name);
+  return { summe, fehlt, zutaten: zl.length, portionen, proPortion: summe / portionen };
+}
+function mahlzeitKcal(daten, v) {   // eigener Wert der Mahlzeit, sonst Rezept pro Portion; null = keine Angabe
+  if (+v.kcal > 0) return Math.round(+v.kcal);
+  const r = rezeptKalorien(daten, v.gericht || "");
+  return r.zutaten && r.summe > 0 ? Math.round(r.proPortion) : null;
+}
+function kalorienTag(daten, tag) {
+  const eintraege = []; let summe = 0, ohne = 0;
+  for (const e of daten.essen || []) for (const v of vorkommenAm(e, tag)) {
+    const k = mahlzeitKcal(daten, v); eintraege.push({ v, kcal: k });
+    if (k === null) ohne++; else summe += k;
+  }
+  eintraege.sort((a, b) => String(a.v.uhrzeit || "99:99").localeCompare(String(b.v.uhrzeit || "99:99")));
+  return { tag, summe, ohne, eintraege };
+}
+function kalorienWoche(daten, montag) {
+  const tage = []; let summe = 0, mitDaten = 0;
+  for (let i = 0; i < 7; i++) { const d = kalorienTag(daten, addDays(montag, i)); tage.push(d); summe += d.summe; if (d.summe > 0) mitDaten++; }
+  return { tage, summe, mitDaten, schnitt: mitDaten ? summe / mitDaten : 0 };
+}
 function gerichtVorschlaege(daten) {
   const fav = Object.keys(daten.rezepte || {}).sort((a, b) => a.localeCompare(b));
   const klein = new Set(fav.map(f => f.toLowerCase()));
@@ -13440,6 +13567,21 @@ function budgetMitEssen(daten, j, m) {
   }
   buchungen.sort((a, b) => a[0] - b[0]);
   return [buchungen, ohnePreis];
+}
+function budgetImZeitraum(daten, von, bis, mitEssen = false) {   // [[Tag, Buchung]] von … bis (einschließlich), optional mit geschätzten Essenskosten
+  const res = [], kosten = {};
+  for (let tag = von; tag <= bis; tag = addDays(tag, 1)) {
+    const mittag = new Date(tag.getFullYear(), tag.getMonth(), tag.getDate(), 12);
+    for (const b of daten.budget || []) for (const v of vorkommenAm(b, mittag)) res.push([mittag, v]);
+    if (!mitEssen) continue;
+    for (const e of daten.essen || []) for (const v of vorkommenAm(e, mittag)) {
+      const name = v.gericht.trim(), k = name.toLowerCase();
+      if (!(k in kosten)) kosten[k] = rezeptKosten(daten, name);
+      const [summe, fehlt] = kosten[k]; if (summe <= 0) continue;
+      res.push([mittag, { art: "Ausgabe", betrag: Math.round(summe * 100) / 100, kategorie: "Lebensmittel", beschreibung: `Essen: ${name} (geschätzt${fehlt ? ", teils ohne Preis" : ""})`, datum: iso(mittag), _auto: true }]);
+    }
+  }
+  return res;
 }
 function budgetSummen(buchungen) {
   let ein = 0, aus = 0; const kat = {};
@@ -13679,8 +13821,21 @@ const SPRACHEN = { de: "Deutsch", en: "English", es: "Español", fr: "Français"
 const I18N = JSON.parse(document.getElementById("i18n-daten").textContent);
 /* ---------- Version und „Was ist neu“ ----------
    Bei jedem Update: APP_VERSION erhöhen und oben in NEUIGKEITEN einen Eintrag ergänzen. */
-const APP_VERSION = "2026.11.23c";
+const APP_VERSION = "2026.11.25c";
 const NEUIGKEITEN = [
+  { version: "2026.11.25c", punkte: [
+    "Statistik: Die Abschnitte (Kennzahlen, Kalorien, Einnahmen, Ausgaben, Lernzeit, Verlauf) lassen sich oben neben der Woche mit Schaltern ein- und ausblenden"
+  ] },
+  { version: "2026.11.25", punkte: [
+    "Geld hat jetzt einen eigenen Reiter. Der frühere Reiter „Einkauf & Geld“ heißt „Essen/Einkauf“ (Einkaufsliste, Rezepte & Preise) und hat einen eigenen Unterreiter „Kalorien“ mit Kalorienzähler für jeden Tag"
+  ] },
+  { version: "2026.11.24", punkte: [
+    "Neu: Kalorien-Tracker – Rezepte bekommen geschätzte Kalorien (pro Portion, eigene Werte überschreibbar), Mahlzeiten lassen sich mit Kalorien versehen, auf „Heute“ siehst du die Kalorien des Tages (optional mit Tagesziel)",
+    "Die Statistik zeigt jetzt eine wählbare Woche: erledigte Aufgaben, Lernzeit, Kalorien pro Tag sowie alle Einnahmen und Ausgaben der Woche"
+  ] },
+  { version: "2026.11.23d", punkte: [
+    "Überfällige Aufgaben lassen sich jetzt direkt löschen – neben „Auf heute“, „Auf morgen“ und „Anderes Datum“"
+  ] },
   { version: "2026.11.23c", punkte: [
     "Das dunkle Farbschema hat jetzt Orange als Hauptfarbe (eigene Farben unter Einstellungen › Aussehen bleiben erhalten)",
     "Das Farbschema „Sunset“ ist entfallen (wer es benutzt hat, steht auf „Automatisch“)"
@@ -14094,6 +14249,59 @@ for (const [l, w] of Object.entries(I18N_AUFGABEN)) {
 /* Übersetzungen zum Knopf "+ Neu" (ersetzt den Reiter "+") */
 const I18N_PLUS = {
   en: {
+    "Kennzahlen": "Key figures",
+    "Abschnitte ein- oder ausblenden": "Show or hide sections",
+    "Statistik: Die Abschnitte (Kennzahlen, Kalorien, Einnahmen, Ausgaben, Lernzeit, Verlauf) lassen sich oben neben der Woche mit Schaltern ein- und ausblenden": "Statistics: the sections (key figures, calories, income, expenses, study time, trends) can be shown or hidden with switches next to the week at the top",
+    "Geld": "Money",
+    "Essen/Einkauf": "Food/Shopping",
+    "Budget, Einnahmen und Ausgaben": "budget, income and expenses",
+    "Einkaufsliste, Rezepte und Kalorien": "shopping list, recipes and calories",
+    "Kalorienzähler öffnen": "Open calorie counter",
+    "Vorheriger Tag": "Previous day",
+    "Nächster Tag": "Next day",
+    "Mahlzeiten": "Meals",
+    "ohne Angabe": "no data",
+    "Keine Mahlzeiten an diesem Tag.": "No meals on this day.",
+    "+ Mahlzeit": "+ Meal",
+    "Rezepte, Vorräte und Preise zeigen (Unterseite in Essen/Einkauf, für den Essensplan)": "Show recipes, supplies and prices (subpage in Food/Shopping, for the meal plan)",
+    "Geld hat jetzt einen eigenen Reiter. Der frühere Reiter „Einkauf & Geld“ heißt „Essen/Einkauf“ (Einkaufsliste, Rezepte & Preise) und hat einen eigenen Unterreiter „Kalorien“ mit Kalorienzähler für jeden Tag": "Money now has its own tab. The former “Shopping & Money” tab is now called “Food/Shopping” (shopping list, recipes & prices) and has its own sub-tab “Calories” with a calorie counter for every day",
+    "Kalorien (optional)": "Calories (optional)",
+    "laut Rezept": "from recipe",
+    "Portionen": "Servings",
+    "Rezept insgesamt": "Recipe total",
+    "pro Portion": "per serving",
+    "Zutaten ohne Kalorienangabe": "ingredients without calories",
+    "Kalorien sind Schätzwerte aus einer eingebauten Tabelle (Nährwerte pro 100 g). Hervorgehobene Werte kannst du überschreiben – dein Wert wird dann gemerkt.": "Calories are estimates from a built-in table (nutritional values per 100 g). You can overwrite highlighted values – your value is then remembered.",
+    "Geschätzte Kalorien pro Portion": "Estimated calories per serving",
+    "Für manche Zutaten fehlen Kalorien": "Some ingredients have no calories yet",
+    "Geschätzte Kalorien dieser Menge – einfach überschreiben": "Estimated calories for this amount – just overwrite",
+    "Kalorien heute": "Calories today",
+    "Über dem Ziel: ": "Over the goal: ",
+    "Mahlzeit(en) ohne Kalorienangabe": "meal(s) without calories",
+    "Noch keine Mahlzeit für heute eingetragen.": "No meal entered for today yet.",
+    "Statistik öffnen": "Open statistics",
+    "Kalorien": "Calories",
+    "Kalorien zählen (Rezepte, Heute und Statistik)": "Count calories (recipes, Today and statistics)",
+    "Tagesziel (kcal, 0 = keins)": "Daily goal (kcal, 0 = none)",
+    "Kalorien werden aus einer eingebauten Tabelle geschätzt; Rezepte zählen pro Portion. Einzelne Mahlzeiten kannst du im Kalender mit eigenen Kalorien versehen.": "Calories are estimated from a built-in table; recipes count per serving. You can give individual meals their own calories in the calendar.",
+    "Vorherige Woche": "Previous week",
+    "Nächste Woche": "Next week",
+    "Diese Woche": "This week",
+    "Aufgaben erledigt": "Tasks done",
+    "Lernzeit": "Study time",
+    "Kalorien Ø pro Tag": "Calories avg. per day",
+    "Kalorien pro Tag": "Calories per day",
+    "pro Tag": "per day",
+    "Summe": "Total",
+    "Ziel": "Goal",
+    "In dieser Woche sind noch keine Mahlzeiten mit Kalorien eingetragen.": "No meals with calories entered for this week yet.",
+    "Keine Einnahmen in dieser Woche.": "No income this week.",
+    "Keine Ausgaben in dieser Woche.": "No expenses this week.",
+    "Lernzeit pro Fach (gewählte Woche)": "Study time per subject (selected week)",
+    "Verlauf": "Trends",
+    "Neu: Kalorien-Tracker – Rezepte bekommen geschätzte Kalorien (pro Portion, eigene Werte überschreibbar), Mahlzeiten lassen sich mit Kalorien versehen, auf „Heute“ siehst du die Kalorien des Tages (optional mit Tagesziel)": "New: calorie tracker – recipes get estimated calories (per serving, your own values can overwrite them), meals can be given calories, and “Today” shows the day's calories (optionally with a daily goal)",
+    "Die Statistik zeigt jetzt eine wählbare Woche: erledigte Aufgaben, Lernzeit, Kalorien pro Tag sowie alle Einnahmen und Ausgaben der Woche": "Statistics now show a selectable week: tasks done, study time, calories per day and all income and expenses of that week",
+    "Überfällige Aufgaben lassen sich jetzt direkt löschen – neben „Auf heute“, „Auf morgen“ und „Anderes Datum“": "Overdue tasks can now be deleted right away – next to “Today”, “Tomorrow” and “Other date”",
     "Das Farbschema „Sunset“ ist entfallen (wer es benutzt hat, steht auf „Automatisch“)": "The “Sunset” colour scheme has been removed (anyone who used it is switched to “Automatic”)",
     "Das dunkle Farbschema hat jetzt Orange als Hauptfarbe (eigene Farben unter Einstellungen › Aussehen bleiben erhalten)": "The dark colour scheme now has orange as its main colour (your own colours under Settings › Appearance are kept)",
     "Tipp: Die Reihenfolge änderst du jederzeit: Alt gedrückt halten und einen Reiter mit der linken Maustaste an eine andere Stelle ziehen (am Handy in den Einstellungen unter „Menü und Reiter“ lange gedrückt halten).": "Tip: you can change the order at any time: hold Alt and drag a tab to another place with the left mouse button (on a phone, press and hold in Settings under “Menu and tabs”).",
@@ -14122,6 +14330,59 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "The “+” tab is gone: on a PC there is now a “+ New” button at the top right; on a phone “+” stays in the middle of the bottom bar"
   },
   es: {
+    "Kennzahlen": "Cifras clave",
+    "Abschnitte ein- oder ausblenden": "Mostrar u ocultar secciones",
+    "Statistik: Die Abschnitte (Kennzahlen, Kalorien, Einnahmen, Ausgaben, Lernzeit, Verlauf) lassen sich oben neben der Woche mit Schaltern ein- und ausblenden": "Estadísticas: las secciones (cifras clave, calorías, ingresos, gastos, tiempo de estudio, evolución) se pueden mostrar u ocultar con interruptores junto a la semana, arriba",
+    "Geld": "Dinero",
+    "Essen/Einkauf": "Comida/Compras",
+    "Budget, Einnahmen und Ausgaben": "presupuesto, ingresos y gastos",
+    "Einkaufsliste, Rezepte und Kalorien": "lista de la compra, recetas y calorías",
+    "Kalorienzähler öffnen": "Abrir contador de calorías",
+    "Vorheriger Tag": "Día anterior",
+    "Nächster Tag": "Día siguiente",
+    "Mahlzeiten": "Comidas",
+    "ohne Angabe": "sin datos",
+    "Keine Mahlzeiten an diesem Tag.": "Sin comidas este día.",
+    "+ Mahlzeit": "+ Comida",
+    "Rezepte, Vorräte und Preise zeigen (Unterseite in Essen/Einkauf, für den Essensplan)": "Mostrar recetas, reservas y precios (subpágina en Comida/Compras, para el plan de comidas)",
+    "Geld hat jetzt einen eigenen Reiter. Der frühere Reiter „Einkauf & Geld“ heißt „Essen/Einkauf“ (Einkaufsliste, Rezepte & Preise) und hat einen eigenen Unterreiter „Kalorien“ mit Kalorienzähler für jeden Tag": "Dinero ahora tiene su propia pestaña. La antigua «Compras y dinero» se llama «Comida/Compras» (lista de la compra, recetas y precios) y tiene su propia subpestaña «Calorías» con un contador de calorías para cada día",
+    "Kalorien (optional)": "Calorías (opcional)",
+    "laut Rezept": "según la receta",
+    "Portionen": "Raciones",
+    "Rezept insgesamt": "Receta en total",
+    "pro Portion": "por ración",
+    "Zutaten ohne Kalorienangabe": "ingredientes sin calorías",
+    "Kalorien sind Schätzwerte aus einer eingebauten Tabelle (Nährwerte pro 100 g). Hervorgehobene Werte kannst du überschreiben – dein Wert wird dann gemerkt.": "Las calorías son estimaciones de una tabla integrada (valores por 100 g). Puedes sobrescribir los valores resaltados; tu valor se recuerda.",
+    "Geschätzte Kalorien pro Portion": "Calorías estimadas por ración",
+    "Für manche Zutaten fehlen Kalorien": "A algunos ingredientes les faltan calorías",
+    "Geschätzte Kalorien dieser Menge – einfach überschreiben": "Calorías estimadas de esta cantidad: simplemente sobrescribe",
+    "Kalorien heute": "Calorías de hoy",
+    "Über dem Ziel: ": "Por encima del objetivo: ",
+    "Mahlzeit(en) ohne Kalorienangabe": "comida(s) sin calorías",
+    "Noch keine Mahlzeit für heute eingetragen.": "Aún no hay ninguna comida para hoy.",
+    "Statistik öffnen": "Abrir estadísticas",
+    "Kalorien": "Calorías",
+    "Kalorien zählen (Rezepte, Heute und Statistik)": "Contar calorías (recetas, Hoy y estadísticas)",
+    "Tagesziel (kcal, 0 = keins)": "Objetivo diario (kcal, 0 = ninguno)",
+    "Kalorien werden aus einer eingebauten Tabelle geschätzt; Rezepte zählen pro Portion. Einzelne Mahlzeiten kannst du im Kalender mit eigenen Kalorien versehen.": "Las calorías se estiman con una tabla integrada; las recetas cuentan por ración. Puedes dar calorías propias a cada comida en el calendario.",
+    "Vorherige Woche": "Semana anterior",
+    "Nächste Woche": "Semana siguiente",
+    "Diese Woche": "Esta semana",
+    "Aufgaben erledigt": "Tareas hechas",
+    "Lernzeit": "Tiempo de estudio",
+    "Kalorien Ø pro Tag": "Calorías media por día",
+    "Kalorien pro Tag": "Calorías por día",
+    "pro Tag": "por día",
+    "Summe": "Suma",
+    "Ziel": "Objetivo",
+    "In dieser Woche sind noch keine Mahlzeiten mit Kalorien eingetragen.": "Esta semana aún no hay comidas con calorías.",
+    "Keine Einnahmen in dieser Woche.": "Sin ingresos esta semana.",
+    "Keine Ausgaben in dieser Woche.": "Sin gastos esta semana.",
+    "Lernzeit pro Fach (gewählte Woche)": "Tiempo de estudio por asignatura (semana elegida)",
+    "Verlauf": "Evolución",
+    "Neu: Kalorien-Tracker – Rezepte bekommen geschätzte Kalorien (pro Portion, eigene Werte überschreibbar), Mahlzeiten lassen sich mit Kalorien versehen, auf „Heute“ siehst du die Kalorien des Tages (optional mit Tagesziel)": "Novedad: contador de calorías: las recetas tienen calorías estimadas (por ración, puedes sobrescribirlas), las comidas pueden llevar calorías y «Hoy» muestra las calorías del día (con objetivo diario opcional)",
+    "Die Statistik zeigt jetzt eine wählbare Woche: erledigte Aufgaben, Lernzeit, Kalorien pro Tag sowie alle Einnahmen und Ausgaben der Woche": "Las estadísticas muestran ahora una semana a elegir: tareas hechas, tiempo de estudio, calorías por día y todos los ingresos y gastos de esa semana",
+    "Überfällige Aufgaben lassen sich jetzt direkt löschen – neben „Auf heute“, „Auf morgen“ und „Anderes Datum“": "Las tareas vencidas ahora se pueden eliminar directamente, junto a «Para hoy», «Para mañana» y «Otra fecha»",
     "Das Farbschema „Sunset“ ist entfallen (wer es benutzt hat, steht auf „Automatisch“)": "El esquema de color «Sunset» ha desaparecido (quien lo usaba pasa a «Automático»)",
     "Das dunkle Farbschema hat jetzt Orange als Hauptfarbe (eigene Farben unter Einstellungen › Aussehen bleiben erhalten)": "El esquema de color oscuro ahora tiene el naranja como color principal (tus colores propios en Ajustes › Aspecto se conservan)",
     "Tipp: Die Reihenfolge änderst du jederzeit: Alt gedrückt halten und einen Reiter mit der linken Maustaste an eine andere Stelle ziehen (am Handy in den Einstellungen unter „Menü und Reiter“ lange gedrückt halten).": "Consejo: puedes cambiar el orden en cualquier momento: mantén pulsada Alt y arrastra una pestaña a otro sitio con el botón izquierdo del ratón (en el móvil, mantén pulsado en Ajustes, en «Menú y pestañas»).",
@@ -14150,6 +14411,59 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "La pestaña «+» ya no existe: en el PC hay ahora un botón «+ Nuevo» arriba a la derecha; en el móvil «+» sigue en el centro de la barra inferior"
   },
   fr: {
+    "Kennzahlen": "Chiffres clés",
+    "Abschnitte ein- oder ausblenden": "Afficher ou masquer les sections",
+    "Statistik: Die Abschnitte (Kennzahlen, Kalorien, Einnahmen, Ausgaben, Lernzeit, Verlauf) lassen sich oben neben der Woche mit Schaltern ein- und ausblenden": "Statistiques : les sections (chiffres clés, calories, recettes, dépenses, temps d'étude, évolution) peuvent être affichées ou masquées avec des interrupteurs à côté de la semaine, en haut",
+    "Geld": "Argent",
+    "Essen/Einkauf": "Repas/Courses",
+    "Budget, Einnahmen und Ausgaben": "budget, recettes et dépenses",
+    "Einkaufsliste, Rezepte und Kalorien": "liste de courses, recettes et calories",
+    "Kalorienzähler öffnen": "Ouvrir le compteur de calories",
+    "Vorheriger Tag": "Jour précédent",
+    "Nächster Tag": "Jour suivant",
+    "Mahlzeiten": "Repas",
+    "ohne Angabe": "sans indication",
+    "Keine Mahlzeiten an diesem Tag.": "Aucun repas ce jour-là.",
+    "+ Mahlzeit": "+ Repas",
+    "Rezepte, Vorräte und Preise zeigen (Unterseite in Essen/Einkauf, für den Essensplan)": "Afficher recettes, réserves et prix (sous-page dans Repas/Courses, pour le plan de repas)",
+    "Geld hat jetzt einen eigenen Reiter. Der frühere Reiter „Einkauf & Geld“ heißt „Essen/Einkauf“ (Einkaufsliste, Rezepte & Preise) und hat einen eigenen Unterreiter „Kalorien“ mit Kalorienzähler für jeden Tag": "Argent a maintenant son propre onglet. L'ancien onglet « Courses et argent » s'appelle « Repas/Courses » (liste de courses, recettes et prix) et possède son propre sous-onglet « Calories » avec un compteur de calories pour chaque jour",
+    "Kalorien (optional)": "Calories (facultatif)",
+    "laut Rezept": "selon la recette",
+    "Portionen": "Portions",
+    "Rezept insgesamt": "Recette au total",
+    "pro Portion": "par portion",
+    "Zutaten ohne Kalorienangabe": "ingrédients sans calories",
+    "Kalorien sind Schätzwerte aus einer eingebauten Tabelle (Nährwerte pro 100 g). Hervorgehobene Werte kannst du überschreiben – dein Wert wird dann gemerkt.": "Les calories sont des estimations issues d'un tableau intégré (valeurs pour 100 g). Tu peux remplacer les valeurs en surbrillance ; ta valeur est alors mémorisée.",
+    "Geschätzte Kalorien pro Portion": "Calories estimées par portion",
+    "Für manche Zutaten fehlen Kalorien": "Il manque les calories de certains ingrédients",
+    "Geschätzte Kalorien dieser Menge – einfach überschreiben": "Calories estimées de cette quantité – il suffit de remplacer",
+    "Kalorien heute": "Calories aujourd'hui",
+    "Über dem Ziel: ": "Au-dessus de l'objectif : ",
+    "Mahlzeit(en) ohne Kalorienangabe": "repas sans calories",
+    "Noch keine Mahlzeit für heute eingetragen.": "Aucun repas enregistré pour aujourd'hui.",
+    "Statistik öffnen": "Ouvrir les statistiques",
+    "Kalorien": "Calories",
+    "Kalorien zählen (Rezepte, Heute und Statistik)": "Compter les calories (recettes, Aujourd'hui et statistiques)",
+    "Tagesziel (kcal, 0 = keins)": "Objectif quotidien (kcal, 0 = aucun)",
+    "Kalorien werden aus einer eingebauten Tabelle geschätzt; Rezepte zählen pro Portion. Einzelne Mahlzeiten kannst du im Kalender mit eigenen Kalorien versehen.": "Les calories sont estimées à partir d'un tableau intégré ; les recettes comptent par portion. Tu peux donner des calories propres à chaque repas dans le calendrier.",
+    "Vorherige Woche": "Semaine précédente",
+    "Nächste Woche": "Semaine suivante",
+    "Diese Woche": "Cette semaine",
+    "Aufgaben erledigt": "Tâches terminées",
+    "Lernzeit": "Temps d'étude",
+    "Kalorien Ø pro Tag": "Calories moy. par jour",
+    "Kalorien pro Tag": "Calories par jour",
+    "pro Tag": "par jour",
+    "Summe": "Total",
+    "Ziel": "Objectif",
+    "In dieser Woche sind noch keine Mahlzeiten mit Kalorien eingetragen.": "Aucun repas avec calories enregistré cette semaine.",
+    "Keine Einnahmen in dieser Woche.": "Aucune recette cette semaine.",
+    "Keine Ausgaben in dieser Woche.": "Aucune dépense cette semaine.",
+    "Lernzeit pro Fach (gewählte Woche)": "Temps d'étude par matière (semaine choisie)",
+    "Verlauf": "Évolution",
+    "Neu: Kalorien-Tracker – Rezepte bekommen geschätzte Kalorien (pro Portion, eigene Werte überschreibbar), Mahlzeiten lassen sich mit Kalorien versehen, auf „Heute“ siehst du die Kalorien des Tages (optional mit Tagesziel)": "Nouveau : suivi des calories – les recettes ont des calories estimées (par portion, tes valeurs peuvent les remplacer), les repas peuvent avoir des calories et « Aujourd'hui » affiche les calories du jour (avec objectif quotidien facultatif)",
+    "Die Statistik zeigt jetzt eine wählbare Woche: erledigte Aufgaben, Lernzeit, Kalorien pro Tag sowie alle Einnahmen und Ausgaben der Woche": "Les statistiques affichent maintenant une semaine au choix : tâches terminées, temps d'étude, calories par jour ainsi que toutes les recettes et dépenses de la semaine",
+    "Überfällige Aufgaben lassen sich jetzt direkt löschen – neben „Auf heute“, „Auf morgen“ und „Anderes Datum“": "Les tâches en retard peuvent maintenant être supprimées directement, à côté de « Pour aujourd'hui », « Pour demain » et « Autre date »",
     "Das Farbschema „Sunset“ ist entfallen (wer es benutzt hat, steht auf „Automatisch“)": "Le jeu de couleurs « Sunset » a été supprimé (ceux qui l'utilisaient passent sur « Automatique »)",
     "Das dunkle Farbschema hat jetzt Orange als Hauptfarbe (eigene Farben unter Einstellungen › Aussehen bleiben erhalten)": "Le jeu de couleurs sombre a maintenant l'orange comme couleur principale (tes couleurs personnalisées sous Réglages › Apparence sont conservées)",
     "Tipp: Die Reihenfolge änderst du jederzeit: Alt gedrückt halten und einen Reiter mit der linken Maustaste an eine andere Stelle ziehen (am Handy in den Einstellungen unter „Menü und Reiter“ lange gedrückt halten).": "Astuce : tu peux changer l'ordre à tout moment : maintiens Alt et fais glisser un onglet à un autre endroit avec le bouton gauche de la souris (sur mobile, appui long dans les réglages sous « Menu et onglets »).",
@@ -14231,21 +14545,21 @@ const $ = s => document.querySelector(s);
 /* ---------- Zustand ---------- */
 let daten, einst;
 let verlauf = [];
-const ui = { tab: "heute", geld: "uebersicht", wetter: { tage: {}, status: "aus", name: "" }, faMontag: null, gespeichert: null, ansicht: "woche", tag: heute(), einkauf: "liste", budgetMonat: heute(), spPlan: heute(), suche: "", sucheArt: "Alle", ferien: {}, ferienStatus: "" };
+const ui = { tab: "heute", statMo: null, geld: "uebersicht", essen: "einkauf", kalTag: null, wetter: { tage: {}, status: "aus", name: "" }, faMontag: null, gespeichert: null, ansicht: "woche", tag: heute(), einkauf: "liste", budgetMonat: heute(), spPlan: heute(), suche: "", sucheArt: "Alle", ferien: {}, ferienStatus: "" };
 const GEMELDET_KEY = "alltagsplaner.gemeldet.v1";
 const gemeldet = new Set((() => { try { const a = JSON.parse(localStorage.getItem(GEMELDET_KEY) || "[]"); return Array.isArray(a) ? a.slice(-400) : []; } catch (e) { return []; } })());
 { const add = gemeldet.add.bind(gemeldet); gemeldet.add = k => { const r = add(k); try { localStorage.setItem(GEMELDET_KEY, JSON.stringify([...gemeldet].slice(-400))); } catch (e) { } return r; }; }   // bereits gemeldete Erinnerungen überstehen ein Neuladen
 const UI_KEY = "alltagsplaner.ui.v1";
 try { Object.assign(ui, { tab: "heute" }, JSON.parse(localStorage.getItem(UI_KEY) || "{}").ui || {}); } catch (e) { }
-function uiSpeichern() { try { localStorage.setItem(UI_KEY, JSON.stringify({ ui: { tab: ui.tab, ansicht: ui.ansicht, einkauf: ui.einkauf, geld: ui.geld } })); } catch (e) { } }
+function uiSpeichern() { try { localStorage.setItem(UI_KEY, JSON.stringify({ ui: { tab: ui.tab, ansicht: ui.ansicht, einkauf: ui.einkauf, geld: ui.geld, essen: ui.essen } })); } catch (e) { } }
 
 /* Nur Objekte in den Listen zulassen - eine kaputte oder fremde Datei darf die App nicht lahmlegen */
 function datenBereinigen(obj) {
   const ist = x => !!x && typeof x === "object" && !Array.isArray(x);
   if (!ist(obj)) return {};
   for (const k of ["aufgaben", "essen", "budget", "noten", "einkauf"]) obj[k] = Array.isArray(obj[k]) ? obj[k].filter(ist) : [];
-  for (const k of ["rezepte", "faecher", "gericht_mahlzeit", "einstellungen"]) if (!ist(obj[k])) obj[k] = {};
-  for (const k of ["vorraete", "preise"]) if (typeof obj[k] !== "string") obj[k] = "";
+  for (const k of ["rezepte", "faecher", "gericht_mahlzeit", "einstellungen", "rezept_portionen"]) if (!ist(obj[k])) obj[k] = {};
+  for (const k of ["vorraete", "preise", "kalorien"]) if (typeof obj[k] !== "string") obj[k] = "";
   return obj;
 }
 function laden() {
@@ -14488,6 +14802,12 @@ function eintragDialog(o = {}) {
       w.mahlzeit = auswahl(MAHLZEITEN.map(m => [m, m]), v.mahlzeit || terminVorgabe.mahlzeit || "Mittagessen");
       body.append(dl, feld("Gericht", w.name), feld("Mahlzeit", w.mahlzeit));
       w.mahlzeit.onchange = () => { const g = daten.gericht_mahlzeit[w.name.value.trim().toLowerCase()]; };
+      if (einst.kalorien_an !== false) {
+        w.kcal = h("input", { type: "number", min: 0, step: 10, value: v.kcal > 0 ? v.kcal : "", placeholder: "z. B. 650" });
+        const vorschlag = () => { const r = rezeptKalorien(daten, w.name.value); w.kcal.placeholder = r.zutaten && r.summe > 0 ? `≈ ${Math.round(r.proPortion)} (${t("laut Rezept")})` : "z. B. 650"; };
+        w.name.addEventListener("input", vorschlag); vorschlag();
+        body.append(feld("Kalorien (optional)", w.kcal));
+      }
     } else {
       w.name = h("input", { type: "text", value: v.name || terminVorgabe.name || "", placeholder: o.lv ? "z. B. Analysis I" : art === "termin" ? "z. B. Vorlesung Statistik" : "z. B. Übungsblatt 3 abgeben" });
       body.append(feld("Titel", w.name));
@@ -14548,6 +14868,7 @@ function eintragDialog(o = {}) {
     if (f.enddatum && f.enddatum < f.datum) { toast("Das Enddatum liegt vor dem Startdatum."); return null; }
     if (art === "essen") {
       f.gericht = w.name.value.trim(); f.mahlzeit = w.mahlzeit.value;
+      f.kcal = w.kcal ? Math.max(0, Math.round(parseFloat(String(w.kcal.value).replace(",", ".")) || 0)) : (v.kcal || 0);
       if (!f.gericht) { toast("Bitte ein Gericht eintragen."); return null; }
     } else {
       f.name = w.name.value.trim(); if (!f.name) { toast("Bitte einen Titel eintragen."); return null; }
@@ -15238,6 +15559,14 @@ function fachDialog(name) {
 }
 
 /* ---------- Fristen ---------- */
+function ueberfaelligLoeschen(u) {
+  const q = u.quelle;
+  if (u.anfang === null) return bestaetigen("Diesen Eintrag löschen?", () => aendern(() => loescheQuelle(q, "aufgabe")));
+  dialog("Wiederkehrenden Eintrag löschen", h("p", { style: "margin:0" }, "Nur diesen Termin oder alle Wiederholungen löschen?"), [
+    { text: "Abbrechen" },
+    { text: "Nur dieser", fn: () => aendern(() => { q.ausnahmen = q.ausnahmen || {}; (q.ausnahmen[u.anfang] = q.ausnahmen[u.anfang] || {}).geloescht = true; }) },
+    { text: "Alle", art: "bad", fn: () => aendern(() => loescheQuelle(q, "aufgabe")) }]);
+}
 function ueberfaelligDatum(u) {
   const d = h("input", { type: "date", value: iso(heute()) });
   dialog("Verschieben auf …", [feld("Neues Datum", d)], [{ text: "Abbrechen" }, { text: "Verschieben", art: "pri", fn: () => {
@@ -15256,6 +15585,7 @@ function fristenTab() {
         h("button", { class: "btn sm", onclick: () => aendern(() => ueberfaelligVerschieben(u, heute())) }, "Auf heute"),
         h("button", { class: "btn sm", onclick: () => aendern(() => ueberfaelligVerschieben(u, addDays(heute(), 1))) }, "Auf morgen"),
         h("button", { class: "btn sm", onclick: () => ueberfaelligDatum(u) }, "Anderes Datum …"),
+        h("button", { class: "btn sm bad", onclick: () => ueberfaelligLoeschen(u) }, "Löschen"),
         h("button", { class: "btn sm", onclick: () => aendern(() => { if (u.anfang === null) u.quelle.erledigt = true; else (u.quelle.erledigt_tage = u.quelle.erledigt_tage || []).push(iso(u.tag)); }) }, "Erledigt"))))));
   }
   const eingM = h("input", { type: "text", id: "mit-datum-eingabe", placeholder: "Neue Aufgabe mit Datum …", style: "flex:1;min-width:160px" });
@@ -15341,6 +15671,7 @@ function rezepteAnsicht() {
       const [k, fehlt] = rezeptKosten(daten, n), z = zutatenParsen(daten.rezepte[n]).length;
       return h("div", { class: "li" }, h("div", { class: "tx" }, h("b", null, R(n)), h("div", { class: "mut small" }, R(`${z} `), z === 1 ? "Zutat" : "Zutaten")),
         k > 0 ? h("span", { class: "pill" + (fehlt ? " warn" : ""), title: fehlt ? "Für manche Zutaten fehlt noch ein Preis" : "Geschätzte Kosten" }, R((fehlt ? "≥ " : "ca. ") + euroText(k))) : null,
+        einst.kalorien_an !== false ? (() => { const r = rezeptKalorien(daten, n); return r.summe > 0 ? h("span", { class: "pill" + (r.fehlt ? " warn" : ""), title: r.fehlt ? "Für manche Zutaten fehlen Kalorien" : "Geschätzte Kalorien pro Portion" }, R(`${r.fehlt ? "≥ " : "≈ "}${Math.round(r.proPortion)} kcal`)) : null; })() : null,
         h("button", { class: "btn sm", onclick: () => rezeptDialog(n) }, "Bearbeiten"));
     })) : leer("Noch keine Rezepte. Klicke auf „+ Rezept“, zum Beispiel „Spaghetti“ mit 200 g Nudeln und 1 Zwiebel."));
 }
@@ -15461,38 +15792,75 @@ async function preisVorschlagFuer(ti, pi) {
   pi.dataset.vorschlag = "1"; pi.classList.add("preis-vorschlag");
   pi.title = `${t("Vorschlag aus Open Prices")}: ${t("Mittelwert aus")} ${s.n} ${t("Preisen")}${s.de ? " " + t("aus Deutschland") : ""}`;
 }
+function einheitFeld(eingabe, einheit, breite) {   // Eingabefeld mit fester Einheit am rechten Rand („€“, „kcal“)
+  eingabe.style.width = "100%"; eingabe.style.boxSizing = "border-box"; eingabe.style.paddingRight = (einheit.length * 7 + 14) + "px";
+  return h("span", { style: `position:relative;display:inline-block;flex:none;width:${breite}px` }, eingabe,
+    h("span", { style: "position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--mut);font-size:12px" }, R(einheit)));
+}
 function rezeptDialog(name) {
   const alt = name !== undefined, n = h("input", { type: "text", value: name || "", placeholder: "z. B. Spaghetti Bolognese" }), preise = preiseParsen(daten.preise), zeilenBox = h("div", { style: "display:flex;flex-direction:column;gap:6px" }), zeilen = [];
+  const kOn = einst.kalorien_an !== false, eigeneK = kalorienParsen(daten.kalorien);
+  const por = h("input", { type: "number", min: 1, max: 50, step: 1, value: alt ? rezeptPortionen(daten, name) : 1 }), sumEl = h("p", { class: "mut small", style: "margin:0;font-weight:600" });
+  const summeZeigen = () => {
+    if (!kOn) return;
+    let s = 0, fehlt = 0;
+    for (const z of zeilen) { if (!z.ti.value.trim()) continue; const k = parseFloat(String(z.ki.value).replace(",", ".")); if (k >= 0) s += k; else fehlt++; }
+    const p = Math.max(1, Math.min(50, Math.round(parseFloat(por.value)) || 1));
+    sumEl.textContent = `${t("Rezept insgesamt")} ≈ ${Math.round(s)} kcal · ${t("pro Portion")} ≈ ${Math.round(s / p)} kcal${fehlt ? ` · ${fehlt} ${t("Zutaten ohne Kalorienangabe")}` : ""}`;
+  };
+  por.addEventListener("input", summeZeigen);
   const neueZeile = (text = "", fokus = false) => {
     const pz = zutatenParsen(text)[0], k = pz && text ? zutatKosten(preise, pz[2], pz[1], pz[0]) : null, start = k !== null && k > 0 ? k.toFixed(2).replace(".", ",") : "";
+    const kc = pz && text ? zutatKcal(eigeneK, pz[2], pz[1], pz[0]) : null, kstart = kc !== null ? String(Math.round(kc)) : "";
     const ti = h("input", { type: "text", value: text, placeholder: "200 g Nudeln", style: "flex:1;min-width:0" }), pi = h("input", { type: "text", inputmode: "decimal", value: start, placeholder: "Preis €", title: "Was kostet diese Menge ungefähr? (freiwillig)", style: "width:92px" });
-    const row = h("div", { class: "row", style: "gap:6px;flex-wrap:nowrap" }, ti, pi, h("button", { class: "btn sm ghost", title: "Zutat entfernen", onclick: () => { zeilen.splice(zeilen.findIndex(z => z.row === row), 1); row.remove(); } }, "✕"));
+    const ki = h("input", { type: "text", inputmode: "numeric", value: kstart, placeholder: "kcal", title: "Geschätzte Kalorien dieser Menge – einfach überschreiben", style: "width:72px" });
+    if (kstart) ki.classList.add("preis-vorschlag");
+    const row = h("div", { class: "row", style: "gap:6px;flex-wrap:nowrap" }, ti, einheitFeld(pi, "€", 88), kOn ? einheitFeld(ki, "kcal", 92) : null, h("button", { class: "btn sm ghost", title: "Zutat entfernen", onclick: () => { zeilen.splice(zeilen.findIndex(z => z.row === row), 1); row.remove(); summeZeigen(); } }, "✕"));
     ti.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); preisVorschlagFuer(ti, pi); neueZeile("", true); } };
     /* Preisvorschlag: kurz nach dem Tippen bzw. beim Verlassen des Feldes; eigene Eingabe im Preisfeld beendet den Vorschlag */
     let warte = 0;
     ti.addEventListener("input", () => { clearTimeout(warte); warte = setTimeout(() => preisVorschlagFuer(ti, pi), 700); });
     ti.addEventListener("blur", () => { clearTimeout(warte); preisVorschlagFuer(ti, pi); });
     pi.addEventListener("input", () => { pi.dataset.vorschlag = ""; pi.classList.remove("preis-vorschlag"); });
+    /* Kalorien: solange du sie nicht selbst änderst, folgt der Schätzwert dem Text der Zutat */
+    ti.addEventListener("input", () => {
+      if (ki.dataset.eigen === "1") return;
+      const p = zutatenParsen(ti.value)[0], c = p && ti.value.trim() ? zutatKcal(eigeneK, p[2], p[1], p[0]) : null;
+      ki.value = c !== null ? String(Math.round(c)) : ""; ki.classList.toggle("preis-vorschlag", c !== null); summeZeigen();
+    });
+    ki.addEventListener("input", () => { ki.dataset.eigen = "1"; ki.classList.remove("preis-vorschlag"); summeZeigen(); });
     if (text && !start) preisVorschlagFuer(ti, pi);   // vorhandene Zutaten ohne Preis
-    zeilen.push({ row, ti, pi, start }); zeilenBox.append(row); if (fokus) ti.focus();
+    zeilen.push({ row, ti, pi, ki, start, kstart }); zeilenBox.append(row); if (fokus) ti.focus(); summeZeigen();
   };
   const alle = alt ? String(daten.rezepte[name] || "").split(/\r?\n/).map(z => z.trim()).filter(Boolean) : [];
   for (const z of alle) neueZeile(z); if (!alle.length) neueZeile("");
-  dialog(alt ? "Rezept bearbeiten" : "Neues Rezept", [feld("Gericht", n), h("div", { class: "f" }, h("span", null, "Zutaten"), zeilenBox),
+  dialog(alt ? "Rezept bearbeiten" : "Neues Rezept", [kOn ? h("div", { class: "grid2" }, feld("Gericht", n), feld("Portionen", por)) : feld("Gericht", n), h("div", { class: "f" }, h("span", null, "Zutaten"), zeilenBox),
     h("div", { class: "row" }, h("button", { class: "btn", onclick: () => neueZeile("", true) }, "+ Zutat"), h("span", { class: "mut small" }, "Schreib einfach „200 g Nudeln“, „1 Zwiebel“ oder „2 EL Öl“. Der Preis ist freiwillig. Mit Enter kommt die nächste Zutat.")),
+    kOn ? sumEl : null,
     einst.preis_vorschlag === false ? null : h("p", { class: "mut small", style: "margin:0" }, "Hervorgehobene Preise sind Vorschläge von Open Prices (Open Food Facts, Daten unter ODbL): Mittelwerte aus echten Kassenbons, dein Laden kann abweichen. Einfach überschreiben."),
+    kOn ? h("p", { class: "mut small", style: "margin:0" }, "Kalorien sind Schätzwerte aus einer eingebauten Tabelle (Nährwerte pro 100 g). Hervorgehobene Werte kannst du überschreiben – dein Wert wird dann gemerkt.") : null,
     ], [
-    ...(alt ? [{ text: "Löschen", art: "bad", fn: () => aendern(() => { delete daten.rezepte[name]; }) }] : []), { text: "Abbrechen" },
+    ...(alt ? [{ text: "Löschen", art: "bad", fn: () => aendern(() => { delete daten.rezepte[name]; if (daten.rezept_portionen) delete daten.rezept_portionen[name]; }) }] : []), { text: "Abbrechen" },
     { text: "Speichern", art: "pri", fn: () => {
       const neu = n.value.trim(); if (!neu) { toast("Bitte einen Namen eintragen."); return false; }
-      const zl = zeilen.map(z => ({ text: z.ti.value.trim().replace(/\s+/g, " "), p: z.pi.value.trim(), start: z.start })).filter(z => z.text);
+      const zl = zeilen.map(z => ({ text: z.ti.value.trim().replace(/\s+/g, " "), p: z.pi.value.trim(), start: z.start, k: z.ki.value.trim(), kstart: z.kstart })).filter(z => z.text);
       aendern(() => {
-        if (alt && neu !== name) delete daten.rezepte[name];
+        if (alt && neu !== name) { delete daten.rezepte[name]; if (daten.rezept_portionen) delete daten.rezept_portionen[name]; }
         daten.rezepte[neu] = zl.map(z => z.text).join("\n");
         for (const z of zl) {
           if (z.p === z.start || !z.p) continue;
           const p = parseFloat(z.p.replace(",", ".")), pz = zutatenParsen(z.text)[0];
           if (p > 0 && pz) daten.preise = preisSetzen(daten.preise, pz[2], preisZeile(pz[0], pz[1], pz[2], p));
+        }
+        if (kOn) {
+          for (const z of zl) {
+            if (!z.k || z.k === z.kstart) continue;
+            const kv = parseFloat(z.k.replace(",", ".")), pz = zutatenParsen(z.text)[0];
+            if (kv >= 0 && pz) daten.kalorien = kalorienSetzen(daten.kalorien, pz[2], kcalZeile(pz[0], pz[1], pz[2], kv));
+          }
+          daten.rezept_portionen = daten.rezept_portionen || {};
+          const pn = Math.max(1, Math.min(50, Math.round(parseFloat(por.value)) || 1));
+          if (pn > 1) daten.rezept_portionen[neu] = pn; else delete daten.rezept_portionen[neu];
         }
       });
     } }]);
@@ -15555,24 +15923,53 @@ function buchungDialog(quelle, ansicht) {
 
 /* ---------- Statistik ---------- */
 function statistikTab() {
-  const h0 = heute(), mo = montagVon(h0), von = addDays(mo, -27);
+  const h0 = heute(), aktMo = montagVon(h0), mo = ui.statMo ? montagVon(ui.statMo) : aktMo, so = addDays(mo, 6), istAkt = iso(mo) === iso(aktMo), von = addDays(aktMo, -27);
   const wochen = statProWoche(daten, 8, h0), maxW = Math.max(1, ...wochen.map(w => w[1] + w[2]));
-  const lern = statLernzeit(daten, mo, addDays(mo, 6)), kat = statKategorien(daten, von, h0), mon = statMonate(daten, 6, h0, einst.budget_essen);
+  const lernAkt = statLernzeit(daten, aktMo, addDays(aktMo, 6)), lern = istAkt ? lernAkt : statLernzeit(daten, mo, so), kat = statKategorien(daten, von, h0), mon = statMonate(daten, 6, h0, einst.budget_essen);
   const maxM = Math.max(1, ...mon.map(x => Math.max(x[2], x[3])));
   const erlGesamt = wochen.reduce((s, w) => s + w[1], 0), serie = statSerie(daten, h0);
   const minKat = kat.reduce((s, k) => s + k[2], 0);
-  return h("div", null, kopfZeile("Statistik"),
-    h("div", { class: "kpis" }, kpi("Aufgaben erledigt (8 Wochen)", String(erlGesamt)), kpi("Aktuelle Serie (Tage)", String(serie)), kpi("Lernzeit diese Woche", stundenText(lern.reduce((s, x) => s + x[1], 0))), kpi("Fokuszeit (4 Wochen)", stundenText(minKat))),
+  /* gewählte Woche: erledigte Aufgaben, Kalorien, Einnahmen und Ausgaben */
+  let erlW = 0; for (let i = 0; i < 7; i++) { const tag = addDays(mo, i); for (const v of aufgabenAm(daten, tag)) if (istErledigt(v, tag)) erlW++; }
+  const kOn = einst.kalorien_an !== false && einst.essen_an !== false, kw = kalorienWoche(daten, mo), kZiel = einst.kalorien_ziel || 0, kMax = Math.max(1, kZiel, ...kw.tage.map(d => d.summe));
+  const buch = budgetImZeitraum(daten, mo, so, !!einst.budget_essen), [einW, ausW] = budgetSummen(buch);
+  const einListe = buch.filter(([, b]) => b.art === "Einnahme"), ausListe = buch.filter(([, b]) => b.art !== "Einnahme");
+  const statAus = Array.isArray(einst.stat_aus) ? einst.stat_aus : [], an = k => !statAus.includes(k);
+  const abschnitte = [["kennzahlen", "Kennzahlen"], ["kalorien", "Kalorien"], ["einnahmen", "Einnahmen"], ["ausgaben", "Ausgaben"], ["lernzeit", "Lernzeit"], ["verlauf", "Verlauf"]].filter(([k]) => k !== "kalorien" || kOn);
+  const nav = h("div", { class: "row", style: "margin-bottom:12px;gap:12px;flex-wrap:wrap;align-items:center" },
+    h("div", { class: "row" }, h("button", { class: "btn", title: "Vorherige Woche", onclick: () => { ui.statMo = addDays(mo, -7); render(); } }, "‹"),
+      h("b", { style: "min-width:210px;text-align:center" }, R(`${t("KW")} ${kwVon(mo)} · ${deKurz(mo)} – ${deKurz(so)}${so.getFullYear()}`)),
+      h("button", { class: "btn", title: "Nächste Woche", onclick: () => { ui.statMo = addDays(mo, 7); render(); } }, "›")),
+    istAkt ? null : h("button", { class: "btn sm", onclick: () => { ui.statMo = null; render(); } }, "Diese Woche"),
+    h("div", { class: "tog stat-abschnitte", title: "Abschnitte ein- oder ausblenden", style: "margin-left:auto" }, abschnitte.map(([k, l]) => h("button", { class: an(k) ? "on" : "", "data-abschnitt": k, onclick: () => aendern(() => { const a = Array.isArray(einst.stat_aus) ? einst.stat_aus : (einst.stat_aus = []), i = a.indexOf(k); if (i >= 0) a.splice(i, 1); else a.push(k); }) }, l))));
+  const saldo = einW - ausW;
+  const tabelle = (liste, leerText) => liste.length ? h("div", { class: "tbl" }, h("table", null, h("thead", null, h("tr", null, h("th", null, "Datum"), h("th", null, "Beschreibung"), h("th", null, "Kategorie"), h("th", { class: "r" }, "Betrag"))),
+    h("tbody", null, liste.map(([d, b]) => h("tr", null, h("td", null, R(deKurz(d))), h("td", null, R(b.beschreibung || "–")), h("td", null, T(b.kategorie || "Sonstiges")), h("td", { class: "r" }, R(euroText(b.betrag)))))))) : leer(leerText);
+  const kcalKarte = !kOn ? null : h("div", { class: "card", "data-karte": "kalorien-woche" }, h("h3", null, "Kalorien pro Tag"),
+    kw.summe > 0 ? h("div", null, h("div", { class: "bars" }, kw.tage.map((d, i) => h("div", { class: "c" }, h("div", { class: "s", title: `${d.summe} kcal` }, h("i", { style: `height:${d.summe / kMax * 100}%;background:${kZiel && d.summe > kZiel ? "var(--bad)" : "var(--acc)"}` })),
+      h("em", { style: "text-align:center;line-height:1.25" }, R(kurzTag(i)), h("br"), h("b", null, R(d.summe ? String(d.summe) : "–")))))),
+      h("p", { class: "mut small", style: "margin:8px 0 0" }, R(`Ø ${Math.round(kw.schnitt)} kcal ${t("pro Tag")} · ${t("Summe")} ${kw.summe} kcal${kZiel ? ` · ${t("Ziel")} ${kZiel} kcal` : ""}`)))
+      : leer("In dieser Woche sind noch keine Mahlzeiten mit Kalorien eingetragen."),
+    kw.tage.reduce((s, d) => s + d.ohne, 0) ? h("p", { class: "mut small", style: "margin:6px 0 0" }, R(`${kw.tage.reduce((s, d) => s + d.ohne, 0)} `), "Mahlzeit(en) ohne Kalorienangabe") : null);
+  return h("div", null, kopfZeile("Statistik"), nav,
+    an("kennzahlen") ? h("div", { class: "kpis" }, kpi("Aufgaben erledigt", String(erlW)), kpi("Lernzeit", stundenText(lern.reduce((s, x) => s + x[1], 0))),
+      kOn ? kpi("Kalorien Ø pro Tag", kw.mitDaten ? String(Math.round(kw.schnitt)) : "–") : null,
+      kpi("Einnahmen", euroText(einW), "pos"), kpi("Ausgaben", euroText(ausW), "neg"), kpi("Saldo", euroText(saldo), saldo >= 0 ? "pos" : "neg")) : null,
+    h("div", { style: "margin-top:14px" }), an("kalorien") ? kcalKarte : null,
+    an("einnahmen") ? h("div", { class: "card", "data-karte": "einnahmen" }, h("div", { class: "row sb" }, h("h3", { style: "margin:0" }, "Einnahmen"), h("b", { class: "pos" }, R(euroText(einW)))), tabelle(einListe, "Keine Einnahmen in dieser Woche.")) : null,
+    an("ausgaben") ? h("div", { class: "card", "data-karte": "ausgaben" }, h("div", { class: "row sb" }, h("h3", { style: "margin:0" }, "Ausgaben"), h("b", { class: "neg" }, R(euroText(ausW)))), tabelle(ausListe, "Keine Ausgaben in dieser Woche.")) : null,
+    an("lernzeit") ? h("div", { class: "card" }, h("h3", null, istAkt ? "Lernzeit pro Fach (diese Woche)" : "Lernzeit pro Fach (gewählte Woche)"), lern.length ? lern.map(([f, e, g]) => h("div", { class: "hbar" }, h("span", null, R(f)), fortschritt(g ? e / g : 0, e >= g && g > 0), h("span", { class: "mut small" }, R(`${stundenText(e)} / ${stundenText(g)}`)))) : leer("Keine Aufgaben mit Fach in dieser Woche.")) : null,
+    an("verlauf") ? [h("h3", { style: "margin:22px 0 10px" }, "Verlauf"),
+    h("div", { class: "kpis" }, kpi("Aufgaben erledigt (8 Wochen)", String(erlGesamt)), kpi("Aktuelle Serie (Tage)", String(serie)), kpi("Lernzeit diese Woche", stundenText(lernAkt.reduce((s, x) => s + x[1], 0))), kpi("Fokuszeit (4 Wochen)", stundenText(minKat))),
     h("div", { class: "card", style: "margin-top:14px" }, h("h3", null, "Erledigte Aufgaben pro Woche"),
       h("div", { class: "bars" }, wochen.map(([start, erl, off]) => h("div", { class: "c" }, h("div", { class: "s" }, h("i", { style: `height:${off / maxW * 100}%;background:var(--bad);opacity:.55;border-radius:0` }), h("i", { style: `height:${erl / maxW * 100}%;background:var(--acc)` })), h("em", { style: "text-align:center;line-height:1.25" }, R(deKurz(start).replace(/\.$/, "")), h("br"), h("b", null, R(`${erl}`))))),
         ), h("div", { class: "row small mut", style: "margin:8px 0 0;gap:16px" },
           h("span", { style: "display:inline-flex;align-items:center;gap:6px" }, h("i", { style: "display:inline-block;width:11px;height:11px;border-radius:3px;background:var(--acc)" }), "erledigt"),
           h("span", { style: "display:inline-flex;align-items:center;gap:6px" }, h("i", { style: "display:inline-block;width:11px;height:11px;border-radius:3px;background:var(--bad);opacity:.55" }), "offen und fällig"))),
-    h("div", { class: "card" }, h("h3", null, "Lernzeit pro Fach (diese Woche)"), lern.length ? lern.map(([f, e, g]) => h("div", { class: "hbar" }, h("span", null, R(f)), fortschritt(g ? e / g : 0, e >= g && g > 0), h("span", { class: "mut small" }, R(`${stundenText(e)} / ${stundenText(g)}`)))) : leer("Keine Aufgaben mit Fach in dieser Woche.")),
     h("div", { class: "card" }, h("h3", null, "Erledigt nach Kategorie (letzte 4 Wochen)"), kat.length ? kat.map(([k, n, m]) => h("div", { class: "hbar" }, h("span", null, R(k)), fortschritt(kat[0][1] ? n / kat[0][1] : 0), h("span", { class: "mut small" }, R(`${n} · ${stundenText(m)}`)))) : leer("Noch nichts erledigt.")),
     h("div", { class: "card" }, h("h3", null, "Ausgaben und Einnahmen (6 Monate)"), h("div", { class: "bars" }, mon.map(([j, m, aus, ein]) => h("div", { class: "c" }, h("div", { class: "s", style: "flex-direction:row;align-items:flex-end;gap:3px" },
       h("i", { title: euroText(aus), style: `height:${aus / maxM * 100}%;background:var(--bad);opacity:.8` }), h("i", { title: euroText(ein), style: `height:${ein / maxM * 100}%;background:var(--ok)` })), h("em", null, R(`${pad(m)}/${String(j).slice(2)}`))))),
-      h("p", { class: "mut small", style: "margin:8px 0 0" }, "Rot: Ausgaben · Grün: Einnahmen")));
+      h("p", { class: "mut small", style: "margin:8px 0 0" }, "Rot: Ausgaben · Grün: Einnahmen"))] : null);
 }
 
 /* ---------- Suche ---------- */
@@ -15596,12 +15993,12 @@ function sucheTab() {
 /* ============================================================
    Oberfläche, Teil 4: Einstellungen, Daten, Kopfzeile, Start
    ============================================================ */
-const REITER = [["heute", "Heute"], ["kalender", "Kalender"], ["fristen", "Aufgaben"], ["plus", "+"], ["stundenplan", "Stundenplan"], ["faecher", "Lernziele"], ["noten", "Noten"], ["geld", "Einkauf & Geld"], ["statistik", "Statistik"], ["suche", "Suche"], ["einstellungen", "Einstellungen"]];
+const REITER = [["heute", "Heute"], ["kalender", "Kalender"], ["fristen", "Aufgaben"], ["plus", "+"], ["stundenplan", "Stundenplan"], ["faecher", "Lernziele"], ["noten", "Noten"], ["geld", "Geld"], ["essen", "Essen/Einkauf"], ["statistik", "Statistik"], ["suche", "Suche"], ["einstellungen", "Einstellungen"]];
 const FIX = new Set(["heute", "kalender", "plus", "einstellungen"]);
 const REITER_STANDARD = REITER.map(r => r[0]);   // Ausgangsreihenfolge (gilt, solange keine eigene gespeichert ist)
 function reiterReihenfolgeAnwenden() {
   const gespeichert = Array.isArray(einst.reiter_reihenfolge) ? einst.reiter_reihenfolge : [];
-  const rang = k => { const i = gespeichert.indexOf(k); return i >= 0 ? i : 1000 + REITER_STANDARD.indexOf(k); };   // neue, unbekannte Reiter hinten in Standardreihenfolge
+  const rang = k => { const i = gespeichert.indexOf(k); return i >= 0 ? i : (k === "essen" && gespeichert.includes("geld") ? gespeichert.indexOf("geld") + 0.5 : 1000 + REITER_STANDARD.indexOf(k)); };   // neue, unbekannte Reiter hinten in Standardreihenfolge
   REITER.sort((a, b) => rang(a[0]) - rang(b[0]));
 }
 /* teilKeys: neue Reihenfolge einiger Reiter (z. B. nur der sichtbaren); alle anderen behalten ihren Platz */
@@ -15740,7 +16137,10 @@ function einstellungenTab() {
       /* ganz oben: Mahlzeiten im Kalender ein/aus */
       sektion("Mahlzeiten im Kalender", schalter("Mahlzeiten im Kalender planen", "essen_an"),
         h("p", { class: "mut small", style: "margin:0" }, einst.essen_an !== false ? "Beim Anlegen gibt es die Art „Essen“, und deine Mahlzeiten erscheinen im Kalender." : "Ausgeschaltet: Beim Anlegen gibt es kein „Essen“, und Mahlzeiten werden im Kalender nicht angezeigt. Bereits eingetragene Mahlzeiten bleiben gespeichert und sind beim Einschalten wieder da.")),
-      sektion("Rezepte und Preise", schalter("Rezepte, Vorräte und Preise zeigen (Unterseite in Einkauf & Geld, für den Essensplan)", "rezepte_an"), schalter("Preisvorschläge für Zutaten aus dem Internet (Open Prices)", "preis_vorschlag")),
+      sektion("Rezepte und Preise", schalter("Rezepte, Vorräte und Preise zeigen (Unterseite in Essen/Einkauf, für den Essensplan)", "rezepte_an"), schalter("Preisvorschläge für Zutaten aus dem Internet (Open Prices)", "preis_vorschlag")),
+      einst.essen_an === false ? null : sektion("Kalorien", schalter("Kalorien zählen (Rezepte, Heute und Statistik)", "kalorien_an"),
+        einst.kalorien_an !== false ? zahlFeld("Tagesziel (kcal, 0 = keins)", "kalorien_ziel", 0, 10000, 50) : null,
+        h("p", { class: "mut small", style: "margin:0" }, "Kalorien werden aus einer eingebauten Tabelle geschätzt; Rezepte zählen pro Portion. Einzelne Mahlzeiten kannst du im Kalender mit eigenen Kalorien versehen.")),
       einst.essen_an === false ? null : sektion("Mahlzeiten", zahlFeld("Dauer Mahlzeit (Min.)", "mahlzeit_dauer", 5, 240, 5),
         h("div", { class: "grid2" }, MAHLZEITEN.map(m => { const i = h("input", { type: "time", value: einst.mahlzeit_zeiten[m] }); i.onchange = () => { aendern(() => { einst.mahlzeit_zeiten[m] = i.value || einst.mahlzeit_zeiten[m]; }, true); }; return feld(m, i); })),
         feld("Farbe für Essen", essenFarbe))]],
@@ -15942,7 +16342,7 @@ async function qrEmpfangen() {
 }
 
 /* ============================================================
-   Oberfläche wie im Python-Programm: Heute, Noten, Einkauf & Geld
+   Oberfläche wie im Python-Programm: Heute, Noten, Essen/Einkauf, Geld
    ============================================================ */
 function subNav(liste, aktiv, wahl) {
   const n = h("div", { class: "sub" });
@@ -16080,6 +16480,19 @@ function schnellBuchungParsen(text) {
 }
 
 /* ---------- Startseite "Heute" ---------- */
+function kalorienKarte(tag) {
+  const k = kalorienTag(daten, tag), ziel = einst.kalorien_ziel || 0, mit = k.eintraege.filter(e => e.kcal !== null);
+  const stat = !(einst.reiter_aus || []).includes("statistik");
+  return h("div", { class: "card", "data-karte": "kalorien" }, h("h3", null, "Kalorien heute"),
+    h("div", { class: "gross" }, R(`${k.summe} kcal`)),
+    ziel ? h("div", { style: "margin:6px 0" }, fortschritt(k.summe / ziel, false), h("div", { class: "mut small" }, R(k.summe <= ziel ? `${t("Noch übrig: ")}${ziel - k.summe} kcal` : `${t("Über dem Ziel: ")}${k.summe - ziel} kcal`))) : null,
+    mit.length ? h("div", { class: "list", style: "margin-top:6px" }, mit.map(e => h("div", { class: "row sb small", style: "padding:2px 0" }, h("span", null, R(`${t(e.v.mahlzeit)}: ${e.v.gericht}`)), h("span", { class: "mut" }, R(`${e.kcal} kcal`))))) : null,
+    k.ohne ? h("div", { class: "mut small", style: "margin-top:4px" }, R(`${k.ohne} `), "Mahlzeit(en) ohne Kalorienangabe") : null,
+    !k.eintraege.length ? h("div", { class: "mut" }, "Noch keine Mahlzeit für heute eingetragen.") : null,
+    h("div", { class: "row", style: "margin-top:8px" },
+      !(einst.reiter_aus || []).includes("essen") ? h("button", { class: "btn sm", onclick: () => { ui.tab = "essen"; ui.essen = "kalorien"; ui.kalTag = null; uiSpeichern(); render(); window.scrollTo(0, 0); } }, "Kalorienzähler öffnen") : null,
+      stat ? h("button", { class: "btn sm", onclick: () => { ui.tab = "statistik"; ui.statMo = null; uiSpeichern(); render(); window.scrollTo(0, 0); } }, "Statistik öffnen") : null));
+}
 function heuteTab() {
   const tag = heute(), hh = new Date().getHours();
   const gruss = hh < 11 ? "Guten Morgen" : hh < 18 ? "Guten Tag" : "Guten Abend";
@@ -16130,8 +16543,9 @@ function heuteTab() {
   const morgen = eintraegeAm(addDays(tag, 1));
   const rechts = h("div", null,
     karte("Fristen", h("div", { class: "zeile" }, R(fristZeilen.length ? fristZeilen.join("\n") : t("Keine offenen Fristen. Gut so!"))), "Alle Aufgaben", geh("fristen")),
-    karte("Einkaufsliste", h("div", { class: "zeile" }, R(offenEk.length ? `${offenEk.length} Artikel offen: ${offenEk.slice(0, 3).join(", ")}${offenEk.length > 3 ? " …" : ""}` : t("Die Liste ist leer."))), "Liste öffnen", geh("geld", { geld: "einkauf" })),
+    karte("Einkaufsliste", h("div", { class: "zeile" }, R(offenEk.length ? `${offenEk.length} Artikel offen: ${offenEk.slice(0, 3).join(", ")}${offenEk.length > 3 ? " …" : ""}` : t("Die Liste ist leer."))), "Liste öffnen", geh("essen", { essen: "einkauf" })),
     karte("Lernziele diese Woche", fp.length ? h("div", null, fp.map(f => h("div", { style: "margin:4px 0" }, h("div", { class: "row sb small" }, h("span", null, R(f.name)), h("span", { class: "mut" }, R(`${stundenText(f.erledigt)} / ${stundenText(f.ziel)}`))), fortschritt(f.erledigt / f.ziel, f.erledigt >= f.ziel)))) : h("div", { class: "mut" }, "Lege unter „Lernziele“ ein Wochenziel für dein erstes Fach fest."), "Lernziele öffnen", geh("faecher")),
+    einst.kalorien_an !== false && einst.essen_an !== false ? kalorienKarte(tag) : null,
     karte("Budget", h("div", null, h("div", { class: "gross" + ((limit ? limit - aus : ein - aus) < 0 ? " neg" : "") }, R(limit ? (limit - aus >= 0 ? `${t("Noch übrig: ")}${euroText(limit - aus)}` : `${t("Überzogen: ")}${euroText(aus - limit)}`) : `${t("Saldo: ")}${euroText(ein - aus)}`)), h("div", { class: "mut small" }, R(`${t("Ausgaben")} ${euroText(aus)}`))), "Übersicht öffnen", geh("geld", { geld: "uebersicht" })),
     karte("Morgen", h("div", { class: "zeile" }, R(morgen.length ? morgen.slice(0, 4).map(it => (zeitVon(it) ? zeitVon(it) + "  " : "") + titelVon(it)).join("\n") + (morgen.length > 4 ? `\n… +${morgen.length - 4}` : "") : t("Morgen ist noch frei."))), "Woche ansehen", geh("kalender", { ansicht: "woche", tag: addDays(tag, 1) })));
   return h("div", null, h("div", { class: "row sb" }, h("h1", { class: "hgruss" }, gruss), (() => { const w = ui.wetter.tage[iso(tag)]; return w ? h("span", { class: "mut", style: "font-size:16px" }, R(`${wetterSymbol(w.code)}  ${w.max}° / ${w.min}°${ui.wetter.name ? "   " + ui.wetter.name.split(",")[0] : ""}`)) : wetterKnopf(); })()),
@@ -16195,11 +16609,42 @@ function noteDialog(n) {
 }
 
 /* ---------- Einkauf & Geld ---------- */
-function geldTab() {
-  const subs = [["uebersicht", "Übersicht"], ["einkauf", "Einkaufsliste"]]; if (einst.rezepte_an) subs.push(["rezepte", "Rezepte & Preise"]);
-  if (!subs.some(s => s[0] === ui.geld)) ui.geld = "uebersicht";
-  const inh = ui.geld === "uebersicht" ? budgetTab() : ui.geld === "einkauf" ? einkaufListeNeu() : einkaufTab();
-  return h("div", null, subNav(subs, ui.geld, k => { ui.geld = k; uiSpeichern(); render(); }), inh);
+function geldTab() { return h("div", null, budgetTab()); }
+function essenTab() {
+  const subs = [["einkauf", "Einkaufsliste"]]; if (einst.rezepte_an) subs.push(["rezepte", "Rezepte & Preise"]); if (einst.kalorien_an !== false) subs.push(["kalorien", "Kalorien"]);
+  if (!subs.some(s => s[0] === ui.essen)) ui.essen = "einkauf";
+  const inh = ui.essen === "einkauf" ? einkaufListeNeu() : ui.essen === "kalorien" ? kalorienSeite() : einkaufTab();
+  return h("div", null, subNav(subs, ui.essen, k => { ui.essen = k; uiSpeichern(); render(); }), inh);
+}
+function kalorienSeite() {   // Kalorienzähler: ein Tag mit Mahlzeiten, Tagesziel und der Woche darum
+  const h0 = heute(), tag = ui.kalTag ? ui.kalTag : h0, istHeute = iso(tag) === iso(h0), mo = montagVon(tag);
+  const k = kalorienTag(daten, tag), ziel = einst.kalorien_ziel || 0, kw = kalorienWoche(daten, mo), kMax = Math.max(1, ziel, ...kw.tage.map(x => x.summe));
+  const geh = d => () => { ui.kalTag = d; render(); };
+  const nav = h("div", { class: "row sb", style: "margin-bottom:12px" },
+    h("div", { class: "row" }, h("button", { class: "btn", title: "Vorheriger Tag", onclick: geh(addDays(tag, -1)) }, "‹"),
+      h("b", { style: "min-width:200px;text-align:center" }, R(`${wochentagName(wochentagNr(tag))}, ${deKurz(tag)}${tag.getFullYear()}`)),
+      h("button", { class: "btn", title: "Nächster Tag", onclick: geh(addDays(tag, 1)) }, "›")),
+    istHeute ? null : h("button", { class: "btn sm", onclick: geh(null) }, "Heute"));
+  const summeKarte = h("div", { class: "card", "data-karte": "kalorienzaehler" },
+    h("div", { class: "row sb" }, h("div", null, h("div", { class: "gross" }, R(`${k.summe} kcal`)),
+      ziel ? h("div", { class: "mut small" }, R(k.summe <= ziel ? `${t("Noch übrig: ")}${ziel - k.summe} kcal` : `${t("Über dem Ziel: ")}${k.summe - ziel} kcal`)) : null),
+      h("button", { class: "btn pri", onclick: () => eintragDialog({ art: "essen", tag }) }, "+ Mahlzeit")),
+    ziel ? h("div", { style: "margin:8px 0" }, fortschritt(k.summe / ziel, false)) : null,
+    h("div", { style: "max-width:260px;margin-top:8px" }, zahlFeld("Tagesziel (kcal, 0 = keins)", "kalorien_ziel", 0, 10000, 50)));
+  const liste = h("div", { class: "card" }, h("h3", null, "Mahlzeiten"),
+    k.eintraege.length ? h("div", { class: "list" }, k.eintraege.map(e => h("div", { class: "li", style: "cursor:pointer", onclick: () => eintragDialog({ v: e.v, quelle: e.v._quelle, art: "essen", tag }) },
+      h("span", { class: "mut", style: "width:48px;flex:none;font-variant-numeric:tabular-nums" }, R(e.v.uhrzeit || "–")),
+      h("div", { class: "tx" }, h("b", null, R(e.v.gericht)), h("div", { class: "mut small" }, R(t(e.v.mahlzeit)))),
+      e.kcal === null ? h("span", { class: "pill warn" }, "ohne Angabe") : h("b", null, R(`${e.kcal} kcal`))))) : leer("Keine Mahlzeiten an diesem Tag."),
+    k.ohne ? h("p", { class: "mut small", style: "margin:8px 0 0" }, R(`${k.ohne} `), "Mahlzeit(en) ohne Kalorienangabe") : null);
+  const stat = !(einst.reiter_aus || []).includes("statistik");
+  const woche = h("div", { class: "card" }, h("h3", null, "Kalorien pro Tag"),
+    h("div", { class: "bars" }, kw.tage.map((x, i) => h("div", { class: "c", style: "cursor:pointer" + (iso(x.tag) === iso(tag) ? "" : ";opacity:.6"), onclick: geh(x.tag) },
+      h("div", { class: "s", title: `${x.summe} kcal` }, h("i", { style: `height:${x.summe / kMax * 100}%;background:${ziel && x.summe > ziel ? "var(--bad)" : "var(--acc)"}` })),
+      h("em", { style: "text-align:center;line-height:1.25" }, R(kurzTag(i)), h("br"), h("b", null, R(x.summe ? String(x.summe) : "–")))))),
+    h("p", { class: "mut small", style: "margin:8px 0 0" }, R(kw.mitDaten ? `Ø ${Math.round(kw.schnitt)} kcal ${t("pro Tag")} · ${t("Summe")} ${kw.summe} kcal` : "")),
+    stat ? h("div", { class: "row", style: "margin-top:8px" }, h("button", { class: "btn sm", onclick: () => { ui.tab = "statistik"; ui.statMo = mo; uiSpeichern(); render(); window.scrollTo(0, 0); } }, "Statistik öffnen")) : null);
+  return h("div", null, nav, summeKarte, h("div", { style: "height:14px" }), liste, woche);
 }
 function budgetGross(ein, aus, limit) {
   const rest = limit - aus, saldo = ein - aus, schlecht = limit ? rest < 0 : saldo < 0;
@@ -16295,7 +16740,8 @@ const LEISTE_SYMBOL = {
   stundenplan: '<rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M9 9v12"/>',
   faecher: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 7h6"/>',
   noten: '<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>',
-  geld: '<path d="M3 4h2l2.4 11h11l2-8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/>',
+  essen: '<path d="M3 4h2l2.4 11h11l2-8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/>',
+  geld: '<circle cx="12" cy="12" r="9"/><path d="M14.6 9.3c-.6-.8-1.5-1.3-2.6-1.3-1.4 0-2.5.8-2.5 2s1 1.7 2.5 2 2.5.8 2.5 2-1.1 2-2.5 2c-1.1 0-2-.5-2.6-1.3M12 6.5V8m0 8v1.5"/>',
   statistik: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   suche: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
   einstellungen: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
@@ -16376,8 +16822,10 @@ function willkommen() {
     h("button", { class: "btn", onclick: () => { ui.tab = "einstellungen"; ui.einstKat = "daten"; render(); } }, "Zu den Einstellungen"));
 }
 function tabInhalt() {
-  if (ui.tab === "einkauf" || ui.tab === "budget") ui.tab = "geld";
-  const inh = { heute: heuteTab, kalender: kalenderTab, stundenplan: stundenplanTab, faecher: faecherTab, noten: notenTab, fristen: fristenTab, geld: geldTab, statistik: statistikTab, suche: sucheTab, einstellungen: einstellungenTab };
+  if (ui.tab === "budget") ui.tab = "geld";
+  if (ui.tab === "einkauf") { ui.tab = "essen"; ui.essen = "einkauf"; }
+  if (ui.tab === "geld" && (ui.geld === "einkauf" || ui.geld === "rezepte")) { ui.essen = ui.geld; ui.tab = "essen"; ui.geld = "uebersicht"; }   // gespeicherter Stand aus der Zeit mit gemeinsamem Reiter
+  const inh = { heute: heuteTab, kalender: kalenderTab, stundenplan: stundenplanTab, faecher: faecherTab, noten: notenTab, fristen: fristenTab, geld: geldTab, essen: essenTab, statistik: statistikTab, suche: sucheTab, einstellungen: einstellungenTab };
   if (!(ui.tab in inh) || (!FIX.has(ui.tab) && einst.reiter_aus.includes(ui.tab) && !(ui.tab === "suche" && ui._sucheTemp))) ui.tab = "heute";
   return h("div", null, null, inh[ui.tab]());
 }
@@ -16904,7 +17352,7 @@ function willkommenDialog() {
     }
     if (seite === 1) { const ta = h("textarea", { placeholder: "Mathe 4\nPhysik 3\nProgrammieren" }); ta.value = w.faecher; ta.oninput = () => { w.faecher = ta.value; }; return [h("h2", null, "Deine Fächer"), h("p", { class: "mut", style: "margin:0" }, "Welche Fächer hast du? Schreib pro Zeile ein Fach, wenn du magst mit einem Wochenziel in Stunden dahinter, zum Beispiel „Mathe 4“. Das kannst du später unter „Lernziele“ ändern."), ta]; }
     if (seite === 2) {
-      const namen = Object.fromEntries(REITER.map(([k, l]) => [k, l])), hilfe = { stundenplan: "deine Vorlesungen und Kurse", faecher: "Wochenziele je Fach, Fokus-Timer", noten: "Noten und ECTS-Punkte", fristen: "Aufgaben mit Frist und Checkliste", geld: "Einkaufsliste und Budget", statistik: "Auswertungen deiner Woche", suche: "alles durchsuchen (Strg + K geht immer)" };
+      const namen = Object.fromEntries(REITER.map(([k, l]) => [k, l])), hilfe = { stundenplan: "deine Vorlesungen und Kurse", faecher: "Wochenziele je Fach, Fokus-Timer", noten: "Noten und ECTS-Punkte", fristen: "Aufgaben mit Frist und Checkliste", geld: "Budget, Einnahmen und Ausgaben", essen: "Einkaufsliste, Rezepte und Kalorien", statistik: "Auswertungen deiner Woche", suche: "alles durchsuchen (Strg + K geht immer)" };
       return [h("h2", null, "Welche Reiter brauchst du?"), h("p", { class: "mut", style: "margin:0" }, "Weniger Reiter sind übersichtlicher. Die wichtigsten (Heute, Kalender) sind immer da. Den Rest kannst du jederzeit in den Einstellungen ein- oder ausblenden."),
         h("p", { class: "mut", style: "margin:0" }, "Tipp: Die Reihenfolge änderst du jederzeit: Alt gedrückt halten und einen Reiter mit der linken Maustaste an eine andere Stelle ziehen (am Handy in den Einstellungen unter „Menü und Reiter“ lange gedrückt halten)."),
         ...Object.keys(w.reiter).map(k => { const c = h("input", { type: "checkbox", checked: w.reiter[k], onchange: () => { w.reiter[k] = c.checked; } }); return h("label", { class: "row", style: "cursor:pointer" }, c, h("b", { style: "width:140px" }, namen[k]), h("span", { class: "mut" }, hilfe[k] || "")); })];
@@ -16938,7 +17386,7 @@ function render() {
     console.error(e);
     if (++renderFehler < 2) { ui.tab = "kalender"; app.replaceChildren(h("main", { class: "wrap" }, h("div", { class: "card" }, h("h3", null, "Etwas ist schiefgelaufen"), h("pre", { style: "white-space:pre-wrap" }, R(String(e && e.stack || e))), h("button", { class: "btn", onclick: render }, "Neu laden")))); }
   }
-  const unter = ui.tab === "kalender" ? ui.ansicht : ui.tab === "geld" ? ui.geld : "";
+  const unter = ui.tab === "kalender" ? ui.ansicht : ui.tab === "essen" ? ui.essen : "";
   const hauptWechsel = letzterSchluessel !== null && ui.tab !== letzterSchluessel;
   const unterWechsel = !hauptWechsel && letzterSchluessel !== null && unter !== letzterUnter;
   letzterSchluessel = ui.tab; letzterUnter = unter;
@@ -17036,7 +17484,7 @@ if (!speicher._ok) toast("Hinweis: Der Browser blockiert hier das Speichern – 
     const r = dx < 0 ? 1 : -1;
     if (ui.tab === "kalender") schieben(r);
     else if (ui.tab === "stundenplan") { ui.spPlan = addDays(ui.spPlan, 7 * r); render(); }
-    else if (ui.tab === "geld" && ui.geld === "uebersicht") { ui.budgetMonat = addMonate(ui.budgetMonat, r); render(); }
+    else if (ui.tab === "geld") { ui.budgetMonat = addMonate(ui.budgetMonat, r); render(); }
   }, { passive: true });
 })();
 window.addEventListener("storage", e => { if (e.key === SPEICHER) { laden(); render(); } });
