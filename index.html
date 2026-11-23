@@ -140,6 +140,14 @@ th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);verti
 th{font-size:12px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
 .pos{color:var(--ok)}.neg{color:var(--bad)}
+.aufg-raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:14px;align-items:start}
+.aufg-raster>.card{margin:0}
+.aufg-raster>.aufg-breit{grid-column:1/-1}
+.kat-karte>summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;font-size:16px}
+.kat-karte>summary::-webkit-details-marker{display:none}
+.kat-karte>summary::before{content:"›";display:inline-block;transition:transform .15s;color:var(--mut);font-size:20px;line-height:1}
+.kat-karte[open]>summary::before{transform:rotate(90deg)}
+.kat-karte[open]>summary{margin-bottom:8px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .kpi{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:var(--sh)}
 .kpi b{display:block;font-weight:600;font-size:26px;letter-spacing:-.02em}
@@ -314,6 +322,8 @@ body{animation:einblenden .28s ease both}
 .btn:active,.nav button:active,.sub button:active,.sidenav button:active{transform:scale(.97)}
 .nav,.sub,.sidenav{position:relative}
 .nav button,.sub button,.sidenav button{position:relative;z-index:1}
+.sidenav{position:sticky}   /* Reiter links bleiben beim Scrollen stehen (wie die obere Leiste) */
+@media (max-width:760px){.sidenav{position:relative}}
 .ind{position:absolute;z-index:0;border-radius:999px;background:color-mix(in srgb,var(--bg),var(--acc) 17%);pointer-events:none}
 .nav.ind-ok button.on,.sub.ind-ok button.on,.sidenav.ind-ok button.on{background:transparent}
 input[type=checkbox]{appearance:none;-webkit-appearance:none;width:20px;height:20px;border-radius:7px;border:2px solid color-mix(in srgb,var(--line),var(--mut) 55%);background:var(--surf);display:inline-grid;place-content:center;cursor:pointer;margin:0;flex:none;transition:background .15s,border-color .15s}
@@ -12920,7 +12930,7 @@ const STANDARD_EINSTELLUNGEN = {
   mahlzeit_zeiten: { "Frühstück": "08:00", "Mittagessen": "12:30", "Abendessen": "18:30", "Snack": "15:30" },
   erinnerung_an: true, erinnerung_minuten: 15, erinnerung_essen: false,
   essen_an: true,   // Mahlzeiten im Kalender planen (aus: kein „Essen“ beim Anlegen, Mahlzeiten nicht im Kalender; Daten bleiben)
-  reiter_aus: [], reiter_reihenfolge: [], reiter_seite: false, leiste: ["heute", "kalender", "fristen"], benachrichtigung: false, filter_aus: [], budget_essen: false, reiter_getrennt: false, stat_aus: [], kalorien_an: true, kalorien_ziel: 0, rezepte_an: true, preis_vorschlag: true, ects_ziel: 180, budget_limit: 0, schrift_stufe: "Normal", reiter_animation: true, timer_fokus: 25, timer_pause: 5, wetter_an: false, wetter_ort: "", einkauf_erinnerung: false, einkauf_tag: "Samstag", einkauf_zeit: "10:00", willkommen_gezeigt: false,
+  reiter_aus: [], reiter_reihenfolge: [], reiter_seite: true, leiste: ["heute", "kalender", "fristen"], benachrichtigung: false, filter_aus: [], budget_essen: false, reiter_getrennt: false, stat_aus: [], aufgaben_ansicht: "datum", aufgaben_zu: [], kalorien_an: true, kalorien_ziel: 0, rezepte_an: true, preis_vorschlag: true, ects_ziel: 180, budget_limit: 0, schrift_stufe: "Normal", reiter_animation: true, timer_fokus: 25, timer_pause: 5, wetter_an: false, wetter_ort: "", einkauf_erinnerung: false, einkauf_tag: "Samstag", einkauf_zeit: "10:00", willkommen_gezeigt: false,
   ferien_art: "aus", ferien_land: "DE", ferien_region: "", ferien_ics: "",
   feiertage_land: startFeiertagsLand(),   // "DE", "AT", "CH", "FR", "ES", "IT", "NL", "BE", "GB", "US" oder "aus"
   feiertage_region: "",                   // nur Deutschland: "" = bundesweit, "DE-BY" usw. = mit Landesfeiertagen
@@ -13821,8 +13831,14 @@ const SPRACHEN = { de: "Deutsch", en: "English", es: "Español", fr: "Français"
 const I18N = JSON.parse(document.getElementById("i18n-daten").textContent);
 /* ---------- Version und „Was ist neu“ ----------
    Bei jedem Update: APP_VERSION erhöhen und oben in NEUIGKEITEN einen Eintrag ergänzen. */
-const APP_VERSION = "2026.11.25c";
+const APP_VERSION = "2026.11.26d";
 const NEUIGKEITEN = [
+  { version: "2026.11.26c", punkte: [
+    "Aufgaben haben hinter „Bearbeiten“ einen schnellen Löschen-Knopf (✕; „Rückgängig“ holt die Aufgabe zurück), und die Reiter links bleiben beim Scrollen mitten im Bild stehen wie die obere Leiste"
+  ] },
+  { version: "2026.11.26", punkte: [
+    "Aufgaben: Ansicht „Nach Kategorie“ mit aufklappbaren Karten je Kategorie (oben umschaltbar), und die Karten stehen auf breiten Fenstern nebeneinander statt über die ganze Breite"
+  ] },
   { version: "2026.11.25c", punkte: [
     "Statistik: Die Abschnitte (Kennzahlen, Kalorien, Einnahmen, Ausgaben, Lernzeit, Verlauf) lassen sich oben neben der Woche mit Schaltern ein- und ausblenden"
   ] },
@@ -14249,6 +14265,15 @@ for (const [l, w] of Object.entries(I18N_AUFGABEN)) {
 /* Übersetzungen zum Knopf "+ Neu" (ersetzt den Reiter "+") */
 const I18N_PLUS = {
   en: {
+    "Aufgaben haben hinter „Bearbeiten“ einen schnellen Löschen-Knopf (✕; „Rückgängig“ holt die Aufgabe zurück), und die Reiter links bleiben beim Scrollen mitten im Bild stehen wie die obere Leiste": "Tasks have a quick delete button (✕) after “Edit” (“Undo” brings the task back), and the tabs on the left stay in view while you scroll, like the top bar",
+    "Nach Datum": "By date",
+    "Nach Kategorie": "By category",
+    "Alle aufklappen": "Expand all",
+    "Alle zuklappen": "Collapse all",
+    "Neue Aufgabe …": "New task …",
+    "Datum (leer lassen = ohne Datum)": "Date (leave empty = no date)",
+    "Noch keine Aufgaben. Schreib oben auf, was du erledigen willst.": "No tasks yet. Write down above what you want to get done.",
+    "Aufgaben: Ansicht „Nach Kategorie“ mit aufklappbaren Karten je Kategorie (oben umschaltbar), und die Karten stehen auf breiten Fenstern nebeneinander statt über die ganze Breite": "Tasks: “By category” view with collapsible cards per category (switch at the top); on wide windows the cards sit side by side instead of spanning the full width",
     "Kennzahlen": "Key figures",
     "Abschnitte ein- oder ausblenden": "Show or hide sections",
     "Statistik: Die Abschnitte (Kennzahlen, Kalorien, Einnahmen, Ausgaben, Lernzeit, Verlauf) lassen sich oben neben der Woche mit Schaltern ein- und ausblenden": "Statistics: the sections (key figures, calories, income, expenses, study time, trends) can be shown or hidden with switches next to the week at the top",
@@ -14330,6 +14355,15 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "The “+” tab is gone: on a PC there is now a “+ New” button at the top right; on a phone “+” stays in the middle of the bottom bar"
   },
   es: {
+    "Aufgaben haben hinter „Bearbeiten“ einen schnellen Löschen-Knopf (✕; „Rückgängig“ holt die Aufgabe zurück), und die Reiter links bleiben beim Scrollen mitten im Bild stehen wie die obere Leiste": "Las tareas tienen un botón rápido de borrar (✕) tras «Editar» («Deshacer» recupera la tarea), y las pestañas de la izquierda se quedan visibles al desplazarte, como la barra superior",
+    "Nach Datum": "Por fecha",
+    "Nach Kategorie": "Por categoría",
+    "Alle aufklappen": "Desplegar todo",
+    "Alle zuklappen": "Plegar todo",
+    "Neue Aufgabe …": "Nueva tarea …",
+    "Datum (leer lassen = ohne Datum)": "Fecha (vacío = sin fecha)",
+    "Noch keine Aufgaben. Schreib oben auf, was du erledigen willst.": "Aún no hay tareas. Escribe arriba lo que quieres hacer.",
+    "Aufgaben: Ansicht „Nach Kategorie“ mit aufklappbaren Karten je Kategorie (oben umschaltbar), und die Karten stehen auf breiten Fenstern nebeneinander statt über die ganze Breite": "Tareas: vista «Por categoría» con tarjetas desplegables por categoría (se cambia arriba); en ventanas anchas las tarjetas van una junto a otra en vez de ocupar todo el ancho",
     "Kennzahlen": "Cifras clave",
     "Abschnitte ein- oder ausblenden": "Mostrar u ocultar secciones",
     "Statistik: Die Abschnitte (Kennzahlen, Kalorien, Einnahmen, Ausgaben, Lernzeit, Verlauf) lassen sich oben neben der Woche mit Schaltern ein- und ausblenden": "Estadísticas: las secciones (cifras clave, calorías, ingresos, gastos, tiempo de estudio, evolución) se pueden mostrar u ocultar con interruptores junto a la semana, arriba",
@@ -14411,6 +14445,15 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "La pestaña «+» ya no existe: en el PC hay ahora un botón «+ Nuevo» arriba a la derecha; en el móvil «+» sigue en el centro de la barra inferior"
   },
   fr: {
+    "Aufgaben haben hinter „Bearbeiten“ einen schnellen Löschen-Knopf (✕; „Rückgängig“ holt die Aufgabe zurück), und die Reiter links bleiben beim Scrollen mitten im Bild stehen wie die obere Leiste": "Les tâches ont un bouton de suppression rapide (✕) après « Modifier » (« Annuler » la restaure), et les onglets à gauche restent visibles pendant le défilement, comme la barre du haut",
+    "Nach Datum": "Par date",
+    "Nach Kategorie": "Par catégorie",
+    "Alle aufklappen": "Tout déplier",
+    "Alle zuklappen": "Tout replier",
+    "Neue Aufgabe …": "Nouvelle tâche …",
+    "Datum (leer lassen = ohne Datum)": "Date (vide = sans date)",
+    "Noch keine Aufgaben. Schreib oben auf, was du erledigen willst.": "Pas encore de tâches. Note ci-dessus ce que tu veux faire.",
+    "Aufgaben: Ansicht „Nach Kategorie“ mit aufklappbaren Karten je Kategorie (oben umschaltbar), und die Karten stehen auf breiten Fenstern nebeneinander statt über die ganze Breite": "Tâches : vue « Par catégorie » avec des cartes dépliables par catégorie (à basculer en haut) ; sur les fenêtres larges, les cartes se placent côte à côte au lieu de prendre toute la largeur",
     "Kennzahlen": "Chiffres clés",
     "Abschnitte ein- oder ausblenden": "Afficher ou masquer les sections",
     "Statistik: Die Abschnitte (Kennzahlen, Kalorien, Einnahmen, Ausgaben, Lernzeit, Verlauf) lassen sich oben neben der Woche mit Schaltern ein- und ausblenden": "Statistiques : les sections (chiffres clés, calories, recettes, dépenses, temps d'étude, évolution) peuvent être affichées ou masquées avec des interrupteurs à côté de la semaine, en haut",
@@ -15576,9 +15619,10 @@ function ueberfaelligDatum(u) {
 }
 function fristenTab() {
   const ueber = ueberfaelligeAufgaben(daten), fr = fristenListe(daten);
+  const ansicht = einst.aufgaben_ansicht === "kategorie" ? "kategorie" : "datum";
   const kart = [];
   if (ueber.length) {
-    kart.push(h("div", { class: "card" }, h("div", { class: "row sb" }, h("h3", null, "Überfällig"),
+    kart.push(h("div", { class: "card aufg-breit" }, h("div", { class: "row sb" }, h("h3", null, "Überfällig"),
       h("button", { class: "btn sm", onclick: () => aendern(() => { for (const u of ueber) ueberfaelligVerschieben(u, heute()); }) }, "Alle auf heute verschieben")),
       h("div", { class: "list" }, ueber.map(u => h("div", { class: "li", style: "flex-wrap:wrap" }, h("div", { class: "tx", style: "min-width:150px" }, h("b", null, R(u.name)), h("div", { class: "mut small" }, R(deDatum(iso(u.tag))))),
         h("span", { class: "pill bad" }, R(tageT(diffDays(u.tag, heute())))),
@@ -15588,42 +15632,82 @@ function fristenTab() {
         h("button", { class: "btn sm bad", onclick: () => ueberfaelligLoeschen(u) }, "Löschen"),
         h("button", { class: "btn sm", onclick: () => aendern(() => { if (u.anfang === null) u.quelle.erledigt = true; else (u.quelle.erledigt_tage = u.quelle.erledigt_tage || []).push(iso(u.tag)); }) }, "Erledigt"))))));
   }
-  const eingM = h("input", { type: "text", id: "mit-datum-eingabe", placeholder: "Neue Aufgabe mit Datum …", style: "flex:1;min-width:160px" });
-  const datM = h("input", { type: "date", value: iso(heute()), title: "Datum" });
-  const neuMit = () => {
-    const tx = eingM.value.trim().replace(/\s+/g, " "); if (!tx) return;
-    if (!datM.value) { toast("Bitte ein Datum wählen."); return; }
-    const d = datM.value; eingM.value = "";
-    aendern(() => { daten.aufgaben.push({ name: tx, typ: "aufgabe", dauer: 30, prio: 2, kategorie: einst.kategorien[0], fach: "", raum: "", dozent: "", vorlauf: 0, notiz: "", checkliste: [], datum: d, uhrzeit: "", enddatum: "", wiederholung: "keine", wiederholen_bis: "", erledigt: false, erledigt_tage: [], farbe: "", ausnahmen: {} }); });
-    setTimeout(() => { const e = document.getElementById("mit-datum-eingabe"); if (e) e.focus(); }, 0);   // gleich die nächste Aufgabe tippen können
-  };
-  eingM.onkeydown = ev => { if (ev.key === "Enter") neuMit(); };
-  datM.onkeydown = ev => { if (ev.key === "Enter") neuMit(); };
-  kart.push(h("div", { class: "card" }, h("h3", null, "Mit Datum"), h("div", { class: "row", style: "margin:8px 0" }, eingM, datM, h("button", { class: "btn pri", onclick: neuMit }, "Hinzufügen")),
-    fr.length ? h("div", { class: "list" }, fr.map(f => h("div", { class: "li" },
-      h("input", { type: "checkbox", title: "Erledigt", onchange: () => aendern(() => { f.quelle.erledigt = true; }) }),
-      h("div", { class: "tx" }, h("b", null, R(f.name)), h("div", { class: "mut small" }, R(`${deDatum(iso(f.frist))}${f.quelle.fach ? " · " + f.quelle.fach : ""}`))),
-      h("span", { class: "pill " + (f.tage <= 1 ? "bad" : f.im_vorlauf ? "warn" : "") }, R(tageT(f.tage))),
-      h("button", { class: "btn sm", onclick: () => eintragDialog({ v: Object.assign({}, f.quelle, { _start: f.quelle.datum, _anfang: f.quelle.datum }), quelle: f.quelle, art: "aufgabe", tag: parseISO(f.quelle.datum) }) }, "Bearbeiten")))) : leer("Keine Aufgaben mit Datum. Aufgaben mit Datum erscheinen hier.")));
-  /* Aufgaben ohne Datum: eine einfache Checkliste */
-  const ohne = daten.aufgaben.filter(a => (a.typ || "aufgabe") === "aufgabe" && !a.datum && (a.wiederholung || "keine") === "keine");
+  const neueAufgabeDaten = (tx, datum, kat) => ({ name: tx, typ: "aufgabe", dauer: 30, prio: 2, kategorie: kat || einst.kategorien[0], fach: "", raum: "", dozent: "", vorlauf: 0, notiz: "", checkliste: [], datum, uhrzeit: "", enddatum: "", wiederholung: "keine", wiederholen_bis: "", erledigt: false, erledigt_tage: [], farbe: "", ausnahmen: {} });
+  const zeileMit = f => h("div", { class: "li" },
+    h("input", { type: "checkbox", title: "Erledigt", onchange: () => aendern(() => { f.quelle.erledigt = true; }) }),
+    h("div", { class: "tx" }, h("b", null, R(f.name)), h("div", { class: "mut small" }, R(`${deDatum(iso(f.frist))}${f.quelle.fach ? " · " + f.quelle.fach : ""}`))),
+    h("span", { class: "pill " + (f.tage <= 1 ? "bad" : f.im_vorlauf ? "warn" : "") }, R(tageT(f.tage))),
+    h("button", { class: "btn sm", onclick: () => eintragDialog({ v: Object.assign({}, f.quelle, { _start: f.quelle.datum, _anfang: f.quelle.datum }), quelle: f.quelle, art: "aufgabe", tag: parseISO(f.quelle.datum) }) }, "Bearbeiten"),
+    h("button", { class: "btn sm bad aufg-loeschen", title: "Löschen", "aria-label": "Löschen", onclick: () => bestaetigen("Diesen Eintrag löschen?", () => aendern(() => loescheQuelle(f.quelle, "aufgabe"))) }, "✕"));
+  const ohne =daten.aufgaben.filter(a => (a.typ || "aufgabe") === "aufgabe" && !a.datum && (a.wiederholung || "keine") === "keine");
   const offenOhne = ohne.filter(a => !a.erledigt).sort((a, b) => a.name.localeCompare(b.name)), fertigOhne = ohne.filter(a => a.erledigt).sort((a, b) => a.name.localeCompare(b.name));
-  const eing = h("input", { type: "text", id: "ohne-datum-eingabe", placeholder: "Neue Aufgabe ohne Datum …", style: "flex:1;min-width:160px" });
-  const neuOhne = () => {
-    const tx = eing.value.trim().replace(/\s+/g, " "); if (!tx) return; eing.value = "";
-    aendern(() => { daten.aufgaben.push({ name: tx, typ: "aufgabe", dauer: 30, prio: 2, kategorie: einst.kategorien[0], fach: "", raum: "", dozent: "", vorlauf: 0, notiz: "", checkliste: [], datum: "", uhrzeit: "", enddatum: "", wiederholung: "keine", wiederholen_bis: "", erledigt: false, erledigt_tage: [], farbe: "", ausnahmen: {} }); });
-    setTimeout(() => { const e = document.getElementById("ohne-datum-eingabe"); if (e) e.focus(); }, 0);   // gleich die nächste Aufgabe tippen können
-  };
-  eing.onkeydown = ev => { if (ev.key === "Enter") neuOhne(); };
   const zeileOhne = a => h("div", { class: "li" },
     h("input", { type: "checkbox", checked: !!a.erledigt, title: "Erledigt", onchange: () => aendern(() => { a.erledigt = !a.erledigt; }) }),
     h("div", { class: "tx", style: a.erledigt ? "text-decoration:line-through;opacity:.55" : "" }, h("b", null, R(a.name)), a.fach || (a.checkliste || []).length ? h("div", { class: "mut small" }, R([a.fach, (a.checkliste || []).length ? `${a.checkliste.filter(p => p.erledigt).length}/${a.checkliste.length}` : ""].filter(Boolean).join(" · "))) : null),
-    h("button", { class: "btn sm", onclick: () => eintragDialog({ v: Object.assign({}, a, { _start: "", _anfang: "" }), quelle: a, art: "aufgabe", tag: heute() }) }, "Bearbeiten"));
-  kart.push(h("div", { class: "card" }, h("div", { class: "row sb", style: "margin-bottom:8px" }, h("h3", { style: "margin:0" }, "Ohne Datum"),
-      fertigOhne.length ? h("button", { class: "btn sm", onclick: () => aendern(() => { daten.aufgaben = daten.aufgaben.filter(a => !((a.typ || "aufgabe") === "aufgabe" && !a.datum && (a.wiederholung || "keine") === "keine" && a.erledigt)); }) }, "Erledigte entfernen") : null),
-    h("div", { class: "row", style: "margin-bottom:8px" }, eing, h("button", { class: "btn pri", onclick: neuOhne }, "Hinzufügen")),
-    ohne.length ? h("div", { class: "list" }, offenOhne.concat(fertigOhne).map(zeileOhne)) : leer("Noch keine Aufgaben ohne Datum. Schreib oben auf, was du erledigen willst.")));
-  return h("div", null, kopfZeile("Aufgaben"), kart);
+    h("button", { class: "btn sm", onclick: () => eintragDialog({ v: Object.assign({}, a, { _start: "", _anfang: "" }), quelle: a, art: "aufgabe", tag: heute() }) }, "Bearbeiten"),
+    h("button", { class: "btn sm bad aufg-loeschen", title: "Löschen", "aria-label": "Löschen", onclick: () => bestaetigen("Diesen Eintrag löschen?", () => aendern(() => loescheQuelle(a, "aufgabe"))) }, "✕"));
+
+  if (ansicht === "datum") {
+    const eingM = h("input", { type: "text", id: "mit-datum-eingabe", placeholder: "Neue Aufgabe mit Datum …", style: "flex:1;min-width:160px" });
+    const datM = h("input", { type: "date", value: iso(heute()), title: "Datum" });
+    const neuMit = () => {
+      const tx = eingM.value.trim().replace(/\s+/g, " "); if (!tx) return;
+      if (!datM.value) { toast("Bitte ein Datum wählen."); return; }
+      const d = datM.value; eingM.value = "";
+      aendern(() => { daten.aufgaben.push(neueAufgabeDaten(tx, d)); });
+      setTimeout(() => { const e = document.getElementById("mit-datum-eingabe"); if (e) e.focus(); }, 0);   // gleich die nächste Aufgabe tippen können
+    };
+    eingM.onkeydown = ev => { if (ev.key === "Enter") neuMit(); };
+    datM.onkeydown = ev => { if (ev.key === "Enter") neuMit(); };
+    kart.push(h("div", { class: "card" }, h("h3", null, "Mit Datum"), h("div", { class: "row", style: "margin:8px 0" }, eingM, datM, h("button", { class: "btn pri", onclick: neuMit }, "Hinzufügen")),
+      fr.length ? h("div", { class: "list" }, fr.map(zeileMit)) : leer("Keine Aufgaben mit Datum. Aufgaben mit Datum erscheinen hier.")));
+    /* Aufgaben ohne Datum: eine einfache Checkliste */
+    const eing = h("input", { type: "text", id: "ohne-datum-eingabe", placeholder: "Neue Aufgabe ohne Datum …", style: "flex:1;min-width:160px" });
+    const neuOhne = () => {
+      const tx = eing.value.trim().replace(/\s+/g, " "); if (!tx) return; eing.value = "";
+      aendern(() => { daten.aufgaben.push(neueAufgabeDaten(tx, "")); });
+      setTimeout(() => { const e = document.getElementById("ohne-datum-eingabe"); if (e) e.focus(); }, 0);
+    };
+    eing.onkeydown = ev => { if (ev.key === "Enter") neuOhne(); };
+    kart.push(h("div", { class: "card" }, h("div", { class: "row sb", style: "margin-bottom:8px" }, h("h3", { style: "margin:0" }, "Ohne Datum"),
+        fertigOhne.length ? h("button", { class: "btn sm", onclick: () => aendern(() => { daten.aufgaben = daten.aufgaben.filter(a => !((a.typ || "aufgabe") === "aufgabe" && !a.datum && (a.wiederholung || "keine") === "keine" && a.erledigt)); }) }, "Erledigte entfernen") : null),
+      h("div", { class: "row", style: "margin-bottom:8px" }, eing, h("button", { class: "btn pri", onclick: neuOhne }, "Hinzufügen")),
+      ohne.length ? h("div", { class: "list" }, offenOhne.concat(fertigOhne).map(zeileOhne)) : leer("Noch keine Aufgaben ohne Datum. Schreib oben auf, was du erledigen willst.")));
+  } else {
+    /* Nach Kategorie: eine aufklappbare Karte je Kategorie (offene Aufgaben mit und ohne Datum) */
+    const eingK = h("input", { type: "text", id: "kat-eingabe", placeholder: "Neue Aufgabe …", style: "flex:1;min-width:160px" });
+    const datK = h("input", { type: "date", title: "Datum (leer lassen = ohne Datum)" });
+    const selK = auswahl(einst.kategorien.map(k => [k, k]), einst.kategorien[0], true);
+    const neuK = () => {
+      const tx = eingK.value.trim().replace(/\s+/g, " "); if (!tx) return; const d = datK.value, k = selK.value; eingK.value = "";
+      aendern(() => { daten.aufgaben.push(neueAufgabeDaten(tx, d, k)); });
+      setTimeout(() => { const e = document.getElementById("kat-eingabe"); if (e) e.focus(); }, 0);
+    };
+    eingK.onkeydown = ev => { if (ev.key === "Enter") neuK(); };
+    datK.onkeydown = ev => { if (ev.key === "Enter") neuK(); };
+    const namen = einst.kategorien.slice();
+    for (const x of [...fr.map(f => f.quelle.kategorie), ...ohne.map(a => a.kategorie)]) if (x && !namen.includes(x)) namen.push(x);
+    const gruppen = namen.map(k => ({ k, mit: fr.filter(f => f.quelle.kategorie === k), offen: offenOhne.filter(a => a.kategorie === k), fertig: fertigOhne.filter(a => a.kategorie === k) })).filter(g => g.mit.length || g.offen.length || g.fertig.length);
+    const zu = Array.isArray(einst.aufgaben_zu) ? einst.aufgaben_zu : [], alleZu = gruppen.length > 0 && gruppen.every(g => zu.includes(g.k));
+    kart.push(h("div", { class: "card aufg-breit" }, h("div", { class: "row", style: "gap:8px" }, eingK, datK, selK, h("button", { class: "btn pri", onclick: neuK }, "Hinzufügen")),
+      gruppen.length ? h("div", { class: "row", style: "margin-top:8px" }, h("button", { class: "btn sm", "data-alle": "1", onclick: () => aendern(() => { einst.aufgaben_zu = alleZu ? [] : gruppen.map(g => g.k); }) }, alleZu ? "Alle aufklappen" : "Alle zuklappen")) : null));
+    if (!gruppen.length) kart.push(h("div", { class: "card aufg-breit" }, leer("Noch keine Aufgaben. Schreib oben auf, was du erledigen willst.")));
+    for (const g of gruppen) {
+      const n = g.mit.length + g.offen.length, farbe = (einst.farben || {})[g.k] || "var(--acc)";
+      const det = h("details", { class: "card kat-karte", "data-kategorie": g.k },
+        h("summary", null, h("span", { class: "dot", style: `background:${farbe}` }), h("b", null, R(g.k)), h("span", { class: "pill" }, R(String(n)))),
+        h("div", { class: "list" }, g.mit.map(zeileMit), g.offen.map(zeileOhne), g.fertig.map(zeileOhne)));
+      det.open = !zu.includes(g.k);
+      det.addEventListener("toggle", () => {
+        const a = einst.aufgaben_zu = Array.isArray(einst.aufgaben_zu) ? einst.aufgaben_zu : [], i = a.indexOf(g.k);
+        if (det.open && i >= 0) a.splice(i, 1); else if (!det.open && i < 0) a.push(g.k);
+        speichern();
+      });
+      kart.push(det);
+    }
+  }
+  const umschalter = h("div", { class: "tog aufg-ansicht" }, [["datum", "Nach Datum"], ["kategorie", "Nach Kategorie"]].map(([k, l]) => h("button", { class: ansicht === k ? "on" : "", "data-ansicht": k, onclick: () => { if (ansicht !== k) aendern(() => { einst.aufgaben_ansicht = k; }); } }, l)));
+  return h("div", null, kopfZeile("Aufgaben", umschalter), h("div", { class: "aufg-raster" }, kart));
 }
 
 /* ---------- Einkauf ---------- */
