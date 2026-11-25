@@ -12934,7 +12934,7 @@ const STANDARD_EINSTELLUNGEN = {
   mahlzeit_zeiten: { "Frühstück": "08:00", "Mittagessen": "12:30", "Abendessen": "18:30", "Snack": "15:30" },
   erinnerung_an: true, erinnerung_minuten: 15, erinnerung_essen: false,
   essen_an: true,   // Mahlzeiten im Kalender planen (aus: kein „Essen“ beim Anlegen, Mahlzeiten nicht im Kalender; Daten bleiben)
-  reiter_aus: [], reiter_reihenfolge: [], reiter_seite: true, leiste: ["heute", "kalender", "fristen"], benachrichtigung: false, filter_aus: [], budget_essen: false, reiter_getrennt: false, stat_aus: [], aufgaben_ansicht: "datum", aufgaben_zu: [], aufgaben_sort: "standard", kalorien_an: true, kalorien_ziel: 0, rezepte_an: true, preis_vorschlag: true, ects_ziel: 180, budget_limit: 0, schrift_stufe: "Normal", reiter_animation: true, timer_fokus: 25, timer_pause: 5, wetter_an: false, wetter_ort: "", einkauf_erinnerung: false, einkauf_tag: "Samstag", einkauf_zeit: "10:00", willkommen_gezeigt: false,
+  reiter_aus: [], reiter_reihenfolge: [], reiter_seite: true, leiste: ["heute", "kalender", "fristen"], benachrichtigung: false, filter_aus: [], budget_essen: false, reiter_getrennt: false, sicherung_erinnerung: 7, stat_aus: [], aufgaben_ansicht: "datum", aufgaben_zu: [], aufgaben_sort: "standard", kalorien_an: true, kalorien_ziel: 0, rezepte_an: true, preis_vorschlag: true, ects_ziel: 180, budget_limit: 0, schrift_stufe: "Normal", reiter_animation: true, timer_fokus: 25, timer_pause: 5, wetter_an: false, wetter_ort: "", einkauf_erinnerung: false, einkauf_tag: "Samstag", einkauf_zeit: "10:00", willkommen_gezeigt: false,
   ferien_art: "aus", ferien_land: "DE", ferien_region: "", ferien_ics: "",
   feiertage_land: startFeiertagsLand(),   // "DE", "AT", "CH", "FR", "ES", "IT", "NL", "BE", "GB", "US" oder "aus"
   feiertage_region: "",                   // nur Deutschland: "" = bundesweit, "DE-BY" usw. = mit Landesfeiertagen
@@ -13836,8 +13836,11 @@ const SPRACHEN = { de: "Deutsch", en: "English", es: "Español", fr: "Français"
 const I18N = JSON.parse(document.getElementById("i18n-daten").textContent);
 /* ---------- Version und „Was ist neu“ ----------
    Bei jedem Update: APP_VERSION erhöhen und oben in NEUIGKEITEN einen Eintrag ergänzen. */
-const APP_VERSION = "2026.11.30";
+const APP_VERSION = "2026.11.30b";
 const NEUIGKEITEN = [
+  { version: "2026.11.30b", punkte: [
+    "Sicherungs-Erinnerung einstellbar (Aus, alle 3 Tage, jede Woche, alle 2 Wochen, jeden Monat) mit Anzeige der letzten Sicherung unter Einstellungen › Daten – standardmäßig nach 7 Tagen ohne Sicherung"
+  ] },
   { version: "2026.11.30", punkte: [
     "Aufgaben: Beide Ansichten haben jetzt dieselben Funktionen – Kategorie beim Anlegen wählbar (und gemerkt), erledigte Aufgaben mit Datum bleiben sichtbar und lassen sich wieder abhaken, „Erledigte entfernen“ gibt es in beiden Ansichten, die Kategorie steht in der Datums-Ansicht in jeder Zeile"
   ] },
@@ -14283,6 +14286,18 @@ for (const [l, w] of Object.entries(I18N_AUFGABEN)) {
 /* Übersetzungen zum Knopf "+ Neu" (ersetzt den Reiter "+") */
 const I18N_PLUS = {
   en: {
+    "Noch keine Sicherung heruntergeladen.": "No backup downloaded yet.",
+    "Letzte Sicherung": "Last backup",
+    "vor": "",
+    "Tag": "day ago",
+    "Tagen": "days ago",
+    "Alle 3 Tage": "Every 3 days",
+    "Jede Woche": "Every week",
+    "Alle 2 Wochen": "Every 2 weeks",
+    "Jeden Monat": "Every month",
+    "Erinnerung zum Sichern (Karte auf „Heute“)": "Backup reminder (card on “Today”)",
+    "In der PC-Version legt OSA.exe jeden Tag selbst eine Sicherungsdatei an, dort erscheint keine Erinnerung.": "In the PC version OSA.exe creates a backup file every day by itself, so no reminder appears there.",
+    "Sicherungs-Erinnerung einstellbar (Aus, alle 3 Tage, jede Woche, alle 2 Wochen, jeden Monat) mit Anzeige der letzten Sicherung unter Einstellungen › Daten – standardmäßig nach 7 Tagen ohne Sicherung": "Backup reminder is now adjustable (off, every 3 days, weekly, every 2 weeks, monthly) and shows the last backup under Settings › Data – by default after 7 days without a backup",
     "Aufgaben: Beide Ansichten haben jetzt dieselben Funktionen – Kategorie beim Anlegen wählbar (und gemerkt), erledigte Aufgaben mit Datum bleiben sichtbar und lassen sich wieder abhaken, „Erledigte entfernen“ gibt es in beiden Ansichten, die Kategorie steht in der Datums-Ansicht in jeder Zeile": "Tasks: both views now offer the same functions – category selectable when adding (and remembered), completed tasks with a date stay visible and can be unticked again, “Remove completed” exists in both views, and the category appears in every row of the date view",
     "Eigene Vorlagen": "Your presets",
     "Speichere deine aktuellen Farben unter einem eigenen Namen und wende sie später mit einem Klick wieder an.": "Save your current colours under a name of your own and apply them again later with one click.",
@@ -14422,6 +14437,18 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "The “+” tab is gone: on a PC there is now a “+ New” button at the top right; on a phone “+” stays in the middle of the bottom bar"
   },
   es: {
+    "Noch keine Sicherung heruntergeladen.": "Aún no se ha descargado ninguna copia de seguridad.",
+    "Letzte Sicherung": "Última copia de seguridad",
+    "vor": "hace",
+    "Tag": "día",
+    "Tagen": "días",
+    "Alle 3 Tage": "Cada 3 días",
+    "Jede Woche": "Cada semana",
+    "Alle 2 Wochen": "Cada 2 semanas",
+    "Jeden Monat": "Cada mes",
+    "Erinnerung zum Sichern (Karte auf „Heute“)": "Recordatorio de copia de seguridad (tarjeta en «Hoy»)",
+    "In der PC-Version legt OSA.exe jeden Tag selbst eine Sicherungsdatei an, dort erscheint keine Erinnerung.": "En la versión de PC, OSA.exe crea cada día un archivo de copia por sí sola, por lo que allí no aparece ningún recordatorio.",
+    "Sicherungs-Erinnerung einstellbar (Aus, alle 3 Tage, jede Woche, alle 2 Wochen, jeden Monat) mit Anzeige der letzten Sicherung unter Einstellungen › Daten – standardmäßig nach 7 Tagen ohne Sicherung": "El recordatorio de copia de seguridad ahora es ajustable (desactivado, cada 3 días, semanal, cada 2 semanas, mensual) y muestra la última copia en Ajustes › Datos – por defecto tras 7 días sin copia",
     "Aufgaben: Beide Ansichten haben jetzt dieselben Funktionen – Kategorie beim Anlegen wählbar (und gemerkt), erledigte Aufgaben mit Datum bleiben sichtbar und lassen sich wieder abhaken, „Erledigte entfernen“ gibt es in beiden Ansichten, die Kategorie steht in der Datums-Ansicht in jeder Zeile": "Tareas: ambas vistas ofrecen ahora las mismas funciones – categoría elegible al crear (y recordada), las tareas completadas con fecha siguen visibles y se pueden desmarcar, «Quitar completadas» existe en ambas vistas y la categoría aparece en cada fila de la vista por fecha",
     "Eigene Vorlagen": "Tus plantillas",
     "Speichere deine aktuellen Farben unter einem eigenen Namen und wende sie später mit einem Klick wieder an.": "Guarda tus colores actuales con un nombre propio y vuelve a aplicarlos después con un clic.",
@@ -14561,6 +14588,18 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "La pestaña «+» ya no existe: en el PC hay ahora un botón «+ Nuevo» arriba a la derecha; en el móvil «+» sigue en el centro de la barra inferior"
   },
   fr: {
+    "Noch keine Sicherung heruntergeladen.": "Aucune sauvegarde téléchargée pour l'instant.",
+    "Letzte Sicherung": "Dernière sauvegarde",
+    "vor": "il y a",
+    "Tag": "jour",
+    "Tagen": "jours",
+    "Alle 3 Tage": "Tous les 3 jours",
+    "Jede Woche": "Chaque semaine",
+    "Alle 2 Wochen": "Toutes les 2 semaines",
+    "Jeden Monat": "Chaque mois",
+    "Erinnerung zum Sichern (Karte auf „Heute“)": "Rappel de sauvegarde (carte sur « Aujourd'hui »)",
+    "In der PC-Version legt OSA.exe jeden Tag selbst eine Sicherungsdatei an, dort erscheint keine Erinnerung.": "Dans la version PC, OSA.exe crée chaque jour un fichier de sauvegarde toute seule ; aucun rappel n'y apparaît.",
+    "Sicherungs-Erinnerung einstellbar (Aus, alle 3 Tage, jede Woche, alle 2 Wochen, jeden Monat) mit Anzeige der letzten Sicherung unter Einstellungen › Daten – standardmäßig nach 7 Tagen ohne Sicherung": "Le rappel de sauvegarde est maintenant réglable (désactivé, tous les 3 jours, chaque semaine, toutes les 2 semaines, chaque mois) et affiche la dernière sauvegarde sous Réglages › Données – par défaut après 7 jours sans sauvegarde",
     "Aufgaben: Beide Ansichten haben jetzt dieselben Funktionen – Kategorie beim Anlegen wählbar (und gemerkt), erledigte Aufgaben mit Datum bleiben sichtbar und lassen sich wieder abhaken, „Erledigte entfernen“ gibt es in beiden Ansichten, die Kategorie steht in der Datums-Ansicht in jeder Zeile": "Tâches : les deux vues offrent maintenant les mêmes fonctions – catégorie au choix à la création (et mémorisée), les tâches terminées avec date restent visibles et peuvent être décochées, « Retirer les terminées » existe dans les deux vues et la catégorie figure sur chaque ligne de la vue par date",
     "Eigene Vorlagen": "Tes préréglages",
     "Speichere deine aktuellen Farben unter einem eigenen Namen und wende sie später mit einem Klick wieder an.": "Enregistre tes couleurs actuelles sous un nom de ton choix et réapplique-les plus tard en un clic.",
@@ -14874,10 +14913,12 @@ function sicherungsKarte() {
   try {
     if (pcApi() || !datenVorhanden(daten)) return null;   // am PC sichert die OSA.exe selbst
     if (!localStorage.getItem(ERSTE_NUTZUNG_KEY)) localStorage.setItem(ERSTE_NUTZUNG_KEY, iso(heute()));
-    const spaeter = localStorage.getItem(SICHERUNG_SPAETER_KEY); if (spaeter && diffDays(heute(), parseISO(spaeter)) < 3) return null;
+    const N = typeof einst.sicherung_erinnerung === "number" ? einst.sicherung_erinnerung : 7;   // Erinnerung nach N Tagen ohne Sicherung; 0 = aus
+    if (N <= 0) return null;
+    const spaeter = localStorage.getItem(SICHERUNG_SPAETER_KEY); if (spaeter && diffDays(heute(), parseISO(spaeter)) < Math.min(3, N)) return null;
     const letzte = localStorage.getItem(DOWNLOAD_KEY), seitNutzung = diffDays(heute(), parseISO(localStorage.getItem(ERSTE_NUTZUNG_KEY)));
     const tage = letzte ? diffDays(heute(), parseISO(letzte)) : null;
-    if (tage === null ? seitNutzung < 7 : tage <= 14) return null;
+    if (tage === null ? seitNutzung < Math.min(N, 3) : tage < N) return null;
     const text = tage === null ? t("Du hast noch keine Sicherung angelegt.") : `${t("Deine letzte Sicherung ist")} ${tage} ${t("Tage her.")}`;
     return h("div", { class: "card sicherungs-karte", style: "margin-bottom:14px" },
       h("b", null, R("💾 " + text)),
@@ -16625,6 +16666,17 @@ function farbVorlagenBereich(schema) {
 }
 
 /* ---------- Daten, Export, Import ---------- */
+function sicherungStatus() {   // „Letzte Sicherung: …“ (Browser: zuletzt heruntergeladene Datei; PC: zuletzt geschriebene Tagessicherung)
+  let letzte = null; try { letzte = localStorage.getItem(DOWNLOAD_KEY); } catch (e) { }
+  const tage = letzte ? diffDays(heute(), parseISO(letzte)) : null;
+  const text = tage === null ? t("Noch keine Sicherung heruntergeladen.") : `${t("Letzte Sicherung")}: ${tage <= 0 ? t("heute") : `${t("vor")} ${tage} ${t(tage === 1 ? "Tag" : "Tagen")}`}`;
+  return h("p", { class: "mut small", "data-sicherung-status": "1", style: "margin:0;font-weight:600" }, R("💾 " + text));
+}
+function sicherungErinnerungFeld() {
+  const s = auswahl([[0, "Aus"], [3, "Alle 3 Tage"], [7, "Jede Woche"], [14, "Alle 2 Wochen"], [30, "Jeden Monat"]], typeof einst.sicherung_erinnerung === "number" ? einst.sicherung_erinnerung : 7);
+  s.onchange = () => setzen("sicherung_erinnerung", +s.value, true);
+  return h("div", null, feld("Erinnerung zum Sichern (Karte auf „Heute“)", s), h("p", { class: "mut small", style: "margin:4px 0 0" }, "In der PC-Version legt OSA.exe jeden Tag selbst eine Sicherungsdatei an, dort erscheint keine Erinnerung."));
+}
 function datenSektion() {
   const von = h("input", { type: "date", value: iso(montagVon(heute())) }), bis = h("input", { type: "date", value: iso(addDays(montagVon(heute()), 55)) });
   const mitEssen = h("input", { type: "checkbox", checked: true }), mitAuf = h("input", { type: "checkbox", checked: true });
@@ -16638,6 +16690,7 @@ function datenSektion() {
   return sektion("Daten und Export",
     speicherInfo, pcInfo,
     h("p", { class: "mut small", style: "margin:0" }, "Alle Daten liegen nur in diesem Browser. Mit einer Sicherung kannst du sie auf ein anderes Gerät oder in die Desktop-Version übertragen (gleiches Format wie osa.json)."),
+    sicherungStatus(), sicherungErinnerungFeld(),
     h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { sicherungHeruntergeladen(); dateiAngebot(`osa-${iso(heute())}.json`, JSON.stringify(daten, null, 1), "application/json", "Sicherung"); } }, "Sicherung anlegen"),
       h("button", { class: "btn", onclick: () => datei.click() }, "Sicherung laden …"), datei,
       h("button", { class: "btn", onclick: uebertragenDialog }, "Auf anderes Gerät übertragen …"), h("button", { class: "btn", onclick: () => verlauf.length ? rueckgaengig() : toast("Nichts zum Rückgängigmachen.") }, "Letzte Änderung rückgängig")),
