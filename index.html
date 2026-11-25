@@ -143,6 +143,10 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
 .aufg-raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:14px;align-items:start}
 .aufg-raster>.card{margin:0}
 .aufg-raster>.aufg-breit{grid-column:1/-1}
+.aufg-spalten{display:flex;gap:14px;align-items:flex-start;margin-top:14px}
+.aufg-spalte{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px}
+.aufg-spalten .card{margin:0}
+@media (max-width:900px){.aufg-spalten{flex-direction:column;align-items:stretch}.aufg-spalte{display:contents}}
 .kat-karte>summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;font-size:16px}
 .kat-karte>summary::-webkit-details-marker{display:none}
 .kat-karte>summary::before{content:"›";display:inline-block;transition:transform .15s;color:var(--mut);font-size:20px;line-height:1}
@@ -12937,7 +12941,8 @@ const STANDARD_EINSTELLUNGEN = {
   zuletzt_version: "",
   kategorien: ["Uni", "Sport", "Haushalt", "Freizeit"],
   farben: { Uni: "#cfe2ff", Sport: "#d1f0d1", Haushalt: "#fff0c2", Freizeit: "#f8d7e8", Essen: "#ffe0b2" },
-  programmfarben: {}
+  programmfarben: {},
+  farb_vorlagen: []   // gespeicherte Farbvorlagen: [{ name, schema, farben }]
 };
 
 /* ---------- Daten laden, ergänzen, speichern ---------- */
@@ -13831,8 +13836,14 @@ const SPRACHEN = { de: "Deutsch", en: "English", es: "Español", fr: "Français"
 const I18N = JSON.parse(document.getElementById("i18n-daten").textContent);
 /* ---------- Version und „Was ist neu“ ----------
    Bei jedem Update: APP_VERSION erhöhen und oben in NEUIGKEITEN einen Eintrag ergänzen. */
-const APP_VERSION = "2026.11.28b";
+const APP_VERSION = "2026.11.30";
 const NEUIGKEITEN = [
+  { version: "2026.11.30", punkte: [
+    "Aufgaben: Beide Ansichten haben jetzt dieselben Funktionen – Kategorie beim Anlegen wählbar (und gemerkt), erledigte Aufgaben mit Datum bleiben sichtbar und lassen sich wieder abhaken, „Erledigte entfernen“ gibt es in beiden Ansichten, die Kategorie steht in der Datums-Ansicht in jeder Zeile"
+  ] },
+  { version: "2026.11.29", punkte: [
+    "Farbvorlagen: Eigene Programmfarben lassen sich unter einem selbst gewählten Namen als Vorlage speichern und mit einem Klick wieder anwenden (Einstellungen › Aussehen)"
+  ] },
   { version: "2026.11.28", punkte: [
     "Abgleich zwischen PC und Handy: „Sicherung laden“ und die QR-Übertragung können jetzt zusammenführen statt alles zu ersetzen (neuere Änderung gewinnt, gelöschte Einträge bleiben gelöscht, nichts wird doppelt angelegt)"
   ] },
@@ -14272,6 +14283,21 @@ for (const [l, w] of Object.entries(I18N_AUFGABEN)) {
 /* Übersetzungen zum Knopf "+ Neu" (ersetzt den Reiter "+") */
 const I18N_PLUS = {
   en: {
+    "Aufgaben: Beide Ansichten haben jetzt dieselben Funktionen – Kategorie beim Anlegen wählbar (und gemerkt), erledigte Aufgaben mit Datum bleiben sichtbar und lassen sich wieder abhaken, „Erledigte entfernen“ gibt es in beiden Ansichten, die Kategorie steht in der Datums-Ansicht in jeder Zeile": "Tasks: both views now offer the same functions – category selectable when adding (and remembered), completed tasks with a date stay visible and can be unticked again, “Remove completed” exists in both views, and the category appears in every row of the date view",
+    "Eigene Vorlagen": "Your presets",
+    "Speichere deine aktuellen Farben unter einem eigenen Namen und wende sie später mit einem Klick wieder an.": "Save your current colours under a name of your own and apply them again later with one click.",
+    "Name der Vorlage, z. B. Mein Dunkelblau": "Preset name, e.g. My dark blue",
+    "Als Vorlage speichern": "Save as preset",
+    "Anwenden": "Apply",
+    "Vorlage löschen": "Delete preset",
+    "Diese Vorlage löschen?": "Delete this preset?",
+    "Bitte einen Namen für die Vorlage eintragen.": "Please enter a name for the preset.",
+    "Vorlage": "Preset",
+    "gibt es schon. Überschreiben?": "already exists. Overwrite?",
+    "Überschreiben": "Overwrite",
+    "Es sind höchstens 30 Vorlagen möglich.": "At most 30 presets are possible.",
+    "Noch keine Vorlagen.": "No presets yet.",
+    "Farbvorlagen: Eigene Programmfarben lassen sich unter einem selbst gewählten Namen als Vorlage speichern und mit einem Klick wieder anwenden (Einstellungen › Aussehen)": "Colour presets: save your own programme colours under a name of your choice and apply them again with one click (Settings › Appearance)",
     "Sicherung laden": "Load backup",
     "Die Datei enthält": "The file contains",
     "Zusammenführen (empfohlen)": "Merge (recommended)",
@@ -14396,6 +14422,21 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "The “+” tab is gone: on a PC there is now a “+ New” button at the top right; on a phone “+” stays in the middle of the bottom bar"
   },
   es: {
+    "Aufgaben: Beide Ansichten haben jetzt dieselben Funktionen – Kategorie beim Anlegen wählbar (und gemerkt), erledigte Aufgaben mit Datum bleiben sichtbar und lassen sich wieder abhaken, „Erledigte entfernen“ gibt es in beiden Ansichten, die Kategorie steht in der Datums-Ansicht in jeder Zeile": "Tareas: ambas vistas ofrecen ahora las mismas funciones – categoría elegible al crear (y recordada), las tareas completadas con fecha siguen visibles y se pueden desmarcar, «Quitar completadas» existe en ambas vistas y la categoría aparece en cada fila de la vista por fecha",
+    "Eigene Vorlagen": "Tus plantillas",
+    "Speichere deine aktuellen Farben unter einem eigenen Namen und wende sie später mit einem Klick wieder an.": "Guarda tus colores actuales con un nombre propio y vuelve a aplicarlos después con un clic.",
+    "Name der Vorlage, z. B. Mein Dunkelblau": "Nombre de la plantilla, p. ej. Mi azul oscuro",
+    "Als Vorlage speichern": "Guardar como plantilla",
+    "Anwenden": "Aplicar",
+    "Vorlage löschen": "Eliminar plantilla",
+    "Diese Vorlage löschen?": "¿Eliminar esta plantilla?",
+    "Bitte einen Namen für die Vorlage eintragen.": "Escribe un nombre para la plantilla.",
+    "Vorlage": "Plantilla",
+    "gibt es schon. Überschreiben?": "ya existe. ¿Sobrescribir?",
+    "Überschreiben": "Sobrescribir",
+    "Es sind höchstens 30 Vorlagen möglich.": "Se permiten como máximo 30 plantillas.",
+    "Noch keine Vorlagen.": "Aún no hay plantillas.",
+    "Farbvorlagen: Eigene Programmfarben lassen sich unter einem selbst gewählten Namen als Vorlage speichern und mit einem Klick wieder anwenden (Einstellungen › Aussehen)": "Plantillas de color: guarda tus colores del programa con un nombre a tu elección y vuelve a aplicarlos con un clic (Ajustes › Aspecto)",
     "Sicherung laden": "Cargar copia de seguridad",
     "Die Datei enthält": "El archivo contiene",
     "Zusammenführen (empfohlen)": "Combinar (recomendado)",
@@ -14520,6 +14561,21 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "La pestaña «+» ya no existe: en el PC hay ahora un botón «+ Nuevo» arriba a la derecha; en el móvil «+» sigue en el centro de la barra inferior"
   },
   fr: {
+    "Aufgaben: Beide Ansichten haben jetzt dieselben Funktionen – Kategorie beim Anlegen wählbar (und gemerkt), erledigte Aufgaben mit Datum bleiben sichtbar und lassen sich wieder abhaken, „Erledigte entfernen“ gibt es in beiden Ansichten, die Kategorie steht in der Datums-Ansicht in jeder Zeile": "Tâches : les deux vues offrent maintenant les mêmes fonctions – catégorie au choix à la création (et mémorisée), les tâches terminées avec date restent visibles et peuvent être décochées, « Retirer les terminées » existe dans les deux vues et la catégorie figure sur chaque ligne de la vue par date",
+    "Eigene Vorlagen": "Tes préréglages",
+    "Speichere deine aktuellen Farben unter einem eigenen Namen und wende sie später mit einem Klick wieder an.": "Enregistre tes couleurs actuelles sous un nom de ton choix et réapplique-les plus tard en un clic.",
+    "Name der Vorlage, z. B. Mein Dunkelblau": "Nom du préréglage, p. ex. Mon bleu foncé",
+    "Als Vorlage speichern": "Enregistrer comme préréglage",
+    "Anwenden": "Appliquer",
+    "Vorlage löschen": "Supprimer le préréglage",
+    "Diese Vorlage löschen?": "Supprimer ce préréglage ?",
+    "Bitte einen Namen für die Vorlage eintragen.": "Saisis un nom pour le préréglage.",
+    "Vorlage": "Préréglage",
+    "gibt es schon. Überschreiben?": "existe déjà. Remplacer ?",
+    "Überschreiben": "Remplacer",
+    "Es sind höchstens 30 Vorlagen möglich.": "30 préréglages au maximum.",
+    "Noch keine Vorlagen.": "Pas encore de préréglages.",
+    "Farbvorlagen: Eigene Programmfarben lassen sich unter einem selbst gewählten Namen als Vorlage speichern und mit einem Klick wieder anwenden (Einstellungen › Aussehen)": "Préréglages de couleurs : enregistre tes couleurs du programme sous un nom de ton choix et réapplique-les en un clic (Réglages › Apparence)",
     "Sicherung laden": "Charger une sauvegarde",
     "Die Datei enthält": "Le fichier contient",
     "Zusammenführen (empfohlen)": "Fusionner (recommandé)",
@@ -15828,7 +15884,7 @@ function fristenTab() {
   const frAlle = fristenListe(daten), fr = aufSortieren(frAlle.filter(f => aufPasst(f.quelle)), f => f.quelle, (a, b) => (a.frist - b.frist) || a.name.localeCompare(b.name));
   const gefiltert = !!(aufFilter.text.trim() || aufFilter.prio || aufFilter.fach);
   const ansicht = einst.aufgaben_ansicht === "kategorie" ? "kategorie" : "datum";
-  const kart = [];
+  const kart = [], katKarten = [];
   if (ueber.length) {
     kart.push(h("div", { class: "card aufg-breit" }, h("div", { class: "row sb" }, h("h3", null, "Überfällig"),
       h("button", { class: "btn sm", onclick: () => aendern(() => { for (const u of ueber) ueberfaelligVerschieben(u, heute()); }) }, "Alle auf heute verschieben")),
@@ -15846,63 +15902,73 @@ function fristenTab() {
   const sichtbar = [];
   const zeileMit = f => (sichtbar.push(f.quelle), h("div", { class: "li" },
     aufAuswahlModus ? auswahlBox(f.quelle) : h("input", { type: "checkbox", title: "Erledigt", onchange: () => aendern(() => { f.quelle.erledigt = true; }) }),
-    h("div", { class: "tx" }, h("b", null, R(f.name)), h("div", { class: "mut small" }, R(`${deDatum(iso(f.frist))}${f.quelle.fach ? " · " + f.quelle.fach : ""}`))),
+    h("div", { class: "tx" }, h("b", null, R(f.name)), h("div", { class: "mut small" }, R(`${deDatum(iso(f.frist))}${f.quelle.fach ? " · " + f.quelle.fach : ""}${ansicht === "datum" && f.quelle.kategorie ? " · " + f.quelle.kategorie : ""}`))),
     wichtig(f.quelle), h("span", { class: "pill " + (f.tage <= 1 ? "bad" : f.im_vorlauf ? "warn" : "") }, R(tageT(f.tage))),
     h("button", { class: "btn sm", onclick: () => eintragDialog({ v: Object.assign({}, f.quelle, { _start: f.quelle.datum, _anfang: f.quelle.datum }), quelle: f.quelle, art: "aufgabe", tag: parseISO(f.quelle.datum) }) }, "Bearbeiten"),
     h("button", { class: "btn sm bad aufg-loeschen", title: "Löschen", "aria-label": "Löschen", onclick: () => bestaetigen("Diesen Eintrag löschen?", () => aendern(() => loescheQuelle(f.quelle, "aufgabe"))) }, "✕")));
-  const ohne =daten.aufgaben.filter(a => (a.typ || "aufgabe") === "aufgabe" && !a.datum && (a.wiederholung || "keine") === "keine");
+  const einfach = a => (a.typ || "aufgabe") === "aufgabe" && (a.wiederholung || "keine") === "keine";
+  const ohne = daten.aufgaben.filter(a => einfach(a) && !a.datum);
   const nameCmp = (a, b) => a.name.localeCompare(b.name);
   const offenOhne = aufSortieren(ohne.filter(a => !a.erledigt && aufPasst(a)), a => a, nameCmp), fertigOhne = aufSortieren(ohne.filter(a => a.erledigt && aufPasst(a)), a => a, nameCmp);
-  const zeileOhne = a => (sichtbar.push(a), h("div", { class: "li" },
+  const fertigMit = aufSortieren(daten.aufgaben.filter(a => einfach(a) && a.datum && a.erledigt && aufPasst(a)), a => a, (a, b) => String(b.datum).localeCompare(String(a.datum)) || nameCmp(a, b));
+  const fertigAlle = daten.aufgaben.filter(a => einfach(a) && a.erledigt);
+  const fertigEntfernen = bereich => aendern(() => { daten.aufgaben = daten.aufgaben.filter(a => !(einfach(a) && a.erledigt && (bereich === "alle" || (bereich === "mit" ? !!a.datum : !a.datum)))); });
+  const zeigeKat = ansicht === "datum";
+  const zeileOhne = a => (sichtbar.push(a), h("div", { class: "li" },   // einfache Aufgabe mit oder ohne Datum (auch erledigte)
     aufAuswahlModus ? auswahlBox(a) : h("input", { type: "checkbox", checked: !!a.erledigt, title: "Erledigt", onchange: () => aendern(() => { a.erledigt = !a.erledigt; }) }),
-    h("div", { class: "tx", style: a.erledigt ? "text-decoration:line-through;opacity:.55" : "" }, h("b", null, R(a.name)), a.fach || (a.checkliste || []).length ? h("div", { class: "mut small" }, R([a.fach, (a.checkliste || []).length ? `${a.checkliste.filter(p => p.erledigt).length}/${a.checkliste.length}` : ""].filter(Boolean).join(" · "))) : null),
-    h("button", { class: "btn sm", onclick: () => eintragDialog({ v: Object.assign({}, a, { _start: "", _anfang: "" }), quelle: a, art: "aufgabe", tag: heute() }) }, "Bearbeiten"),
+    h("div", { class: "tx", style: a.erledigt ? "text-decoration:line-through;opacity:.55" : "" }, h("b", null, R(a.name)),
+      a.datum || a.fach || (a.checkliste || []).length || (zeigeKat && a.kategorie) ? h("div", { class: "mut small" }, R([a.datum ? deDatum(a.datum) : "", a.fach, (a.checkliste || []).length ? `${a.checkliste.filter(p => p.erledigt).length}/${a.checkliste.length}` : "", zeigeKat ? a.kategorie : ""].filter(Boolean).join(" · "))) : null),
+    h("button", { class: "btn sm", onclick: () => eintragDialog({ v: Object.assign({}, a, { _start: a.datum || "", _anfang: a.datum || "" }), quelle: a, art: "aufgabe", tag: a.datum ? parseISO(a.datum) : heute() }) }, "Bearbeiten"),
     wichtig(a), h("button", { class: "btn sm bad aufg-loeschen", title: "Löschen", "aria-label": "Löschen", onclick: () => bestaetigen("Diesen Eintrag löschen?", () => aendern(() => loescheQuelle(a, "aufgabe"))) }, "✕")));
+  const katAuswahl = () => { const s = auswahl(einst.kategorien.map(k => [k, k]), einst.kategorien.includes(ui.aufNeuKat) ? ui.aufNeuKat : einst.kategorien[0], true); s.onchange = () => { ui.aufNeuKat = s.value; }; return s; };   // zuletzt gewählte Kategorie bleibt
+  const entfernenKnopf = (bereich, n) => n ? h("button", { class: "btn sm", "data-entfernen": bereich, onclick: () => fertigEntfernen(bereich) }, "Erledigte entfernen") : null;
 
   if (ansicht === "datum") {
     const eingM = h("input", { type: "text", id: "mit-datum-eingabe", placeholder: "Neue Aufgabe mit Datum …", style: "flex:1;min-width:160px" });
-    const datM = h("input", { type: "date", value: iso(heute()), title: "Datum" });
+    const datM = h("input", { type: "date", value: iso(heute()), title: "Datum" }), selM = katAuswahl();
     const neuMit = () => {
       const tx = eingM.value.trim().replace(/\s+/g, " "); if (!tx) return;
       if (!datM.value) { toast("Bitte ein Datum wählen."); return; }
-      const d = datM.value; eingM.value = "";
-      aendern(() => { daten.aufgaben.push(neueAufgabeDaten(tx, d)); });
+      const d = datM.value, k = selM.value; eingM.value = ""; ui.aufNeuKat = k;
+      aendern(() => { daten.aufgaben.push(neueAufgabeDaten(tx, d, k)); });
       setTimeout(() => { const e = document.getElementById("mit-datum-eingabe"); if (e) e.focus(); }, 0);   // gleich die nächste Aufgabe tippen können
     };
     eingM.onkeydown = ev => { if (ev.key === "Enter") neuMit(); };
     datM.onkeydown = ev => { if (ev.key === "Enter") neuMit(); };
-    kart.push(h("div", { class: "card" }, h("h3", null, "Mit Datum"), h("div", { class: "row", style: "margin:8px 0" }, eingM, datM, h("button", { class: "btn pri", onclick: neuMit }, "Hinzufügen")),
-      fr.length ? h("div", { class: "list" }, fr.map(zeileMit)) : leer(gefiltert ? "Keine passenden Aufgaben." : "Keine Aufgaben mit Datum. Aufgaben mit Datum erscheinen hier.")));
+    const mitFertigAlle = fertigAlle.filter(a => a.datum).length;
+    kart.push(h("div", { class: "card" }, h("div", { class: "row sb", style: "margin-bottom:8px" }, h("h3", { style: "margin:0" }, "Mit Datum"), entfernenKnopf("mit", mitFertigAlle)),
+      h("div", { class: "row", style: "margin:8px 0" }, eingM, datM, selM, h("button", { class: "btn pri", onclick: neuMit }, "Hinzufügen")),
+      fr.length + fertigMit.length ? h("div", { class: "list" }, fr.map(zeileMit), fertigMit.map(zeileOhne)) : leer(gefiltert ? "Keine passenden Aufgaben." : "Keine Aufgaben mit Datum. Aufgaben mit Datum erscheinen hier.")));
     /* Aufgaben ohne Datum: eine einfache Checkliste */
-    const eing = h("input", { type: "text", id: "ohne-datum-eingabe", placeholder: "Neue Aufgabe ohne Datum …", style: "flex:1;min-width:160px" });
+    const eing = h("input", { type: "text", id: "ohne-datum-eingabe", placeholder: "Neue Aufgabe ohne Datum …", style: "flex:1;min-width:160px" }), selO = katAuswahl();
     const neuOhne = () => {
-      const tx = eing.value.trim().replace(/\s+/g, " "); if (!tx) return; eing.value = "";
-      aendern(() => { daten.aufgaben.push(neueAufgabeDaten(tx, "")); });
+      const tx = eing.value.trim().replace(/\s+/g, " "); if (!tx) return; const k = selO.value; eing.value = ""; ui.aufNeuKat = k;
+      aendern(() => { daten.aufgaben.push(neueAufgabeDaten(tx, "", k)); });
       setTimeout(() => { const e = document.getElementById("ohne-datum-eingabe"); if (e) e.focus(); }, 0);
     };
     eing.onkeydown = ev => { if (ev.key === "Enter") neuOhne(); };
-    kart.push(h("div", { class: "card" }, h("div", { class: "row sb", style: "margin-bottom:8px" }, h("h3", { style: "margin:0" }, "Ohne Datum"),
-        fertigOhne.length ? h("button", { class: "btn sm", onclick: () => aendern(() => { daten.aufgaben = daten.aufgaben.filter(a => !((a.typ || "aufgabe") === "aufgabe" && !a.datum && (a.wiederholung || "keine") === "keine" && a.erledigt)); }) }, "Erledigte entfernen") : null),
-      h("div", { class: "row", style: "margin-bottom:8px" }, eing, h("button", { class: "btn pri", onclick: neuOhne }, "Hinzufügen")),
+    const ohneFertigAlle = fertigAlle.filter(a => !a.datum).length;
+    kart.push(h("div", { class: "card" }, h("div", { class: "row sb", style: "margin-bottom:8px" }, h("h3", { style: "margin:0" }, "Ohne Datum"), entfernenKnopf("ohne", ohneFertigAlle)),
+      h("div", { class: "row", style: "margin-bottom:8px" }, eing, selO, h("button", { class: "btn pri", onclick: neuOhne }, "Hinzufügen")),
       offenOhne.length + fertigOhne.length ? h("div", { class: "list" }, offenOhne.concat(fertigOhne).map(zeileOhne)) : leer(gefiltert ? "Keine passenden Aufgaben." : "Noch keine Aufgaben ohne Datum. Schreib oben auf, was du erledigen willst.")));
   } else {
     /* Nach Kategorie: eine aufklappbare Karte je Kategorie (offene Aufgaben mit und ohne Datum) */
     const eingK = h("input", { type: "text", id: "kat-eingabe", placeholder: "Neue Aufgabe …", style: "flex:1;min-width:160px" });
     const datK = h("input", { type: "date", title: "Datum (leer lassen = ohne Datum)" });
-    const selK = auswahl(einst.kategorien.map(k => [k, k]), einst.kategorien[0], true);
+    const selK = katAuswahl();
     const neuK = () => {
-      const tx = eingK.value.trim().replace(/\s+/g, " "); if (!tx) return; const d = datK.value, k = selK.value; eingK.value = "";
+      const tx = eingK.value.trim().replace(/\s+/g, " "); if (!tx) return; const d = datK.value, k = selK.value; eingK.value = ""; ui.aufNeuKat = k;
       aendern(() => { daten.aufgaben.push(neueAufgabeDaten(tx, d, k)); });
       setTimeout(() => { const e = document.getElementById("kat-eingabe"); if (e) e.focus(); }, 0);
     };
     eingK.onkeydown = ev => { if (ev.key === "Enter") neuK(); };
     datK.onkeydown = ev => { if (ev.key === "Enter") neuK(); };
     const namen = einst.kategorien.slice();
-    for (const x of [...frAlle.map(f => f.quelle.kategorie), ...ohne.map(a => a.kategorie)]) if (x && !namen.includes(x)) namen.push(x);
-    const gruppen = namen.map(k => ({ k, mit: fr.filter(f => f.quelle.kategorie === k), offen: offenOhne.filter(a => a.kategorie === k), fertig: fertigOhne.filter(a => a.kategorie === k) })).filter(g => g.mit.length || g.offen.length || g.fertig.length);
+    for (const x of [...frAlle.map(f => f.quelle.kategorie), ...ohne.map(a => a.kategorie), ...fertigMit.map(a => a.kategorie)]) if (x && !namen.includes(x)) namen.push(x);
+    const gruppen = namen.map(k => ({ k, mit: fr.filter(f => f.quelle.kategorie === k), offen: offenOhne.filter(a => a.kategorie === k), fertig: fertigMit.filter(a => a.kategorie === k).concat(fertigOhne.filter(a => a.kategorie === k)) })).filter(g => g.mit.length || g.offen.length || g.fertig.length);
     const zu = Array.isArray(einst.aufgaben_zu) ? einst.aufgaben_zu : [], alleZu = gruppen.length > 0 && gruppen.every(g => zu.includes(g.k));
     kart.push(h("div", { class: "card aufg-breit" }, h("div", { class: "row", style: "gap:8px" }, eingK, datK, selK, h("button", { class: "btn pri", onclick: neuK }, "Hinzufügen")),
-      gruppen.length ? h("div", { class: "row", style: "margin-top:8px" }, h("button", { class: "btn sm", "data-alle": "1", onclick: () => aendern(() => { einst.aufgaben_zu = alleZu ? [] : gruppen.map(g => g.k); }) }, alleZu ? "Alle aufklappen" : "Alle zuklappen")) : null));
+      gruppen.length || fertigAlle.length ? h("div", { class: "row", style: "margin-top:8px;gap:8px" }, gruppen.length ? h("button", { class: "btn sm", "data-alle": "1", onclick: () => aendern(() => { einst.aufgaben_zu = alleZu ? [] : gruppen.map(g => g.k); }) }, alleZu ? "Alle aufklappen" : "Alle zuklappen") : null, entfernenKnopf("alle", fertigAlle.length)) : null));
     if (!gruppen.length) kart.push(h("div", { class: "card aufg-breit" }, leer(gefiltert ? "Keine passenden Aufgaben." : "Noch keine Aufgaben. Schreib oben auf, was du erledigen willst.")));
     for (const g of gruppen) {
       const n = g.mit.length + g.offen.length, farbe = (einst.farben || {})[g.k] || "var(--acc)";
@@ -15915,7 +15981,7 @@ function fristenTab() {
         if (det.open && i >= 0) a.splice(i, 1); else if (!det.open && i < 0) a.push(g.k);
         speichern();
       });
-      kart.push(det);
+      det.style.order = String(katKarten.length); katKarten.push(det);
     }
   }
   const umschalter = h("div", { class: "tog aufg-ansicht" }, [["datum", "Nach Datum"], ["kategorie", "Nach Kategorie"]].map(([k, l]) => h("button", { class: ansicht === k ? "on" : "", "data-ansicht": k, onclick: () => { if (ansicht !== k) aendern(() => { einst.aufgaben_ansicht = k; }); } }, l)));
@@ -15938,7 +16004,9 @@ function fristenTab() {
     h("button", { class: "btn sm", "data-aktion": "kategorie", disabled: !n, onclick: () => aufKategorieDialog(wahl) }, "Kategorie ändern …"),
     h("button", { class: "btn sm bad", "data-aktion": "loeschen", disabled: !n, onclick: () => bestaetigen(`${n} ${t("Aufgaben löschen?")}`, () => { aufAuswahl.clear(); aendern(() => { for (const q of wahl) loescheQuelle(q, "aufgabe"); }); }) }, "Löschen"),
     h("button", { class: "btn sm", "data-aktion": "aufheben", disabled: !n, onclick: () => { aufAuswahl.clear(); render(); } }, "Auswahl aufheben"));
-  return h("div", null, kopfZeile("Aufgaben", umschalter), werkzeug, aktionen, h("div", { class: "aufg-raster" }, kart));
+  /* Kategorie-Karten in zwei Spalten, jede Spalte läuft für sich: aufgeklappte Karten schieben nur ihre eigene Spalte nach unten (keine Lücken) */
+  const spalten = katKarten.length ? h("div", { class: "aufg-spalten" }, h("div", { class: "aufg-spalte" }, katKarten.filter((_, i) => i % 2 === 0)), h("div", { class: "aufg-spalte" }, katKarten.filter((_, i) => i % 2 === 1))) : null;
+  return h("div", null, kopfZeile("Aufgaben", umschalter), werkzeug, aktionen, h("div", { class: "aufg-raster" }, kart), spalten);
 }
 
 /* ---------- Einkauf ---------- */
@@ -16444,7 +16512,7 @@ function einstellungenTab() {
       sektion("Darstellung", feld("Farbschema", design), schalter("Reiter an der Seite (links) statt oben", "reiter_seite"), schalter("Weiche Übergänge beim Wechseln der Reiter", "reiter_animation"), feld("Schriftgröße", stufe)),
       programmfarbenSektion()]],
     ["kalender", "📅", "Kalender", () => [sektion("Wochenansicht", h("div", { class: "grid2" }, zahlFeld("Erste Stunde", "woche_von", 0, 22), zahlFeld("Letzte Stunde", "woche_bis", 1, 24))),
-      feiertage, ferien, wetterSektion(), sektion("Kategorien und Farben", kat, h("div", { class: "row" }, neuKat, h("button", { class: "btn", onclick: katAdd }, "Hinzufügen"))), importSektion()]],
+      feiertage, ferien, wetterSektion(), sektion("Kategorien und Farben", kat, h("div", { class: "row" }, neuKat, h("button", { class: "btn", onclick: katAdd }, "Hinzufügen")))]],
     ["termine", "⏰", "Termine und Erinnerungen", () => [sektion("Standarddauer", h("div", { class: "grid2" }, zahlFeld("Standarddauer Termin (Min.)", "termin_dauer", 5, 600, 5), zahlFeld("Dauer Lehrveranstaltung (Min.)", "stundenplan_dauer", 5, 600, 5))),
       sektion("Erinnerungen", schalter("Erinnerungen anzeigen", "erinnerung_an"), benachrichtigungSchalter(), einst.essen_an !== false ? schalter("Auch für Mahlzeiten", "erinnerung_essen") : null, zahlFeld("Minuten vorher", "erinnerung_minuten", 0, 240, 5),
         h("p", { class: "mut small", style: "margin:0" }, "Erinnerungen erscheinen, solange das Fenster geöffnet ist."))]],
@@ -16459,7 +16527,7 @@ function einstellungenTab() {
       einst.essen_an === false ? null : sektion("Mahlzeiten", zahlFeld("Dauer Mahlzeit (Min.)", "mahlzeit_dauer", 5, 240, 5),
         h("div", { class: "grid2" }, MAHLZEITEN.map(m => { const i = h("input", { type: "time", value: einst.mahlzeit_zeiten[m] }); i.onchange = () => { aendern(() => { einst.mahlzeit_zeiten[m] = i.value || einst.mahlzeit_zeiten[m]; }, true); }; return feld(m, i); })),
         feld("Farbe für Essen", essenFarbe))]],
-    ["daten", "💾", "Daten und Datenschutz", () => [datenSektion(), sektion("Datenschutz", datenschutzInhalt()),
+    ["daten", "💾", "Daten und Datenschutz", () => [datenSektion(), importSektion(), sektion("Datenschutz", datenschutzInhalt()),
       sektion("Über OSA", h("p", { class: "mut small", style: "margin:0" }, R(`OSA – Open Student Agenda · ${t("Version")} ${APP_VERSION}`)), h("div", { class: "row" }, h("button", { class: "btn", onclick: () => wasIstNeuDialog("") }, "Was ist neu")), zuruecksetzen)]]
   ];
   if (ui.einstKat && !KATS.some(k => k[0] === ui.einstKat)) ui.einstKat = null;
@@ -16518,7 +16586,42 @@ function programmfarbenSektion() {
   });
   return sektion("Programmfarben", h("p", { class: "mut small", style: "margin:0" }, "Eigene Farben für das gewählte Farbschema. Änderungen gelten sofort."),
     h("div", { class: "list" }, zeilen),
-    h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { aendern(() => { delete (einst.programmfarben || {})[schema]; }); } }, "Auf Standard zurücksetzen")));
+    h("div", { class: "row" }, h("button", { class: "btn", onclick: () => { aendern(() => { delete (einst.programmfarben || {})[schema]; }); } }, "Auf Standard zurücksetzen")),
+    farbVorlagenBereich(schema));
+}
+/* Eigene Farbvorlagen: aktuelle Programmfarben (samt Farbschema) unter einem Namen speichern und mit einem Klick wieder anwenden */
+const FARB_VORLAGEN_MAX = 30;
+function farbVorlagenBereich(schema) {
+  const liste = (Array.isArray(einst.farb_vorlagen) ? einst.farb_vorlagen : []).filter(v => v && typeof v.name === "string" && v.farben && typeof v.farben === "object");
+  const nameFeld = h("input", { type: "text", id: "farb-vorlage-name", maxlength: 40, placeholder: "Name der Vorlage, z. B. Mein Dunkelblau", style: "flex:1;min-width:160px" });
+  const farbenVon = v => { const T0 = THEMEN[v.schema] || THEMEN.ozean, f = k => (HEX_FARBE.test(v.farben[k]) ? v.farben[k] : T0[k]); return [f("bg"), f("karte"), f("akzent"), f("text")]; };
+  const speichernVorlage = () => {
+    const n = nameFeld.value.trim().replace(/\s+/g, " ");
+    if (!n) return toast("Bitte einen Namen für die Vorlage eintragen.");
+    const gleich = liste.some(v => v.name.toLowerCase() === n.toLowerCase());
+    if (!gleich && liste.length >= FARB_VORLAGEN_MAX) return toast("Es sind höchstens 30 Vorlagen möglich.");
+    const tun = () => aendern(() => {
+      const l = einst.farb_vorlagen = Array.isArray(einst.farb_vorlagen) ? einst.farb_vorlagen : [];
+      const neu = { name: n, schema, farben: JSON.parse(JSON.stringify((einst.programmfarben || {})[schema] || {})) }, i = l.findIndex(x => x && String(x.name).toLowerCase() === n.toLowerCase());
+      if (i >= 0) l[i] = neu; else l.push(neu);
+    });
+    if (gleich) bestaetigen(`${t("Vorlage")} „${n}“ ${t("gibt es schon. Überschreiben?")}`, tun, "Überschreiben"); else tun();
+  };
+  nameFeld.onkeydown = ev => { if (ev.key === "Enter") speichernVorlage(); };
+  const anwenden = v => aendern(() => {
+    if (v.schema in THEMEN) einst.design = v.schema;
+    einst.programmfarben = einst.programmfarben || {};
+    if (Object.keys(v.farben).length) einst.programmfarben[v.schema] = JSON.parse(JSON.stringify(v.farben)); else delete einst.programmfarben[v.schema];
+  });
+  const zeile = v => h("div", { class: "li", "data-vorlage": v.name },
+    h("span", { style: "display:inline-flex;gap:2px;flex:none" }, farbenVon(v).map(c => h("i", { style: `display:inline-block;width:14px;height:24px;border-radius:4px;background:${c};border:1px solid var(--line)` }))),
+    h("div", { class: "tx" }, h("b", null, R(v.name)), h("div", { class: "mut small" }, ((DESIGN_AUSWAHL.find(x => x[0] === v.schema) || [])[1]) || R(String(v.schema)))),
+    h("button", { class: "btn sm", "data-aktion": "anwenden", onclick: () => anwenden(v) }, "Anwenden"),
+    h("button", { class: "btn sm bad", "data-aktion": "loeschen", title: "Vorlage löschen", "aria-label": "Vorlage löschen", onclick: () => bestaetigen("Diese Vorlage löschen?", () => aendern(() => { einst.farb_vorlagen = einst.farb_vorlagen.filter(x => x !== v); })) }, "✕"));
+  return h("div", { class: "farb-vorlagen", style: "margin-top:12px;display:flex;flex-direction:column;gap:8px" }, h("h3", { style: "margin:6px 0 0" }, "Eigene Vorlagen"),
+    h("p", { class: "mut small", style: "margin:0" }, "Speichere deine aktuellen Farben unter einem eigenen Namen und wende sie später mit einem Klick wieder an."),
+    h("div", { class: "row" }, nameFeld, h("button", { class: "btn pri", "data-aktion": "vorlage-speichern", onclick: speichernVorlage }, "Als Vorlage speichern")),
+    liste.length ? h("div", { class: "list" }, liste.map(zeile)) : h("div", { class: "mut small" }, "Noch keine Vorlagen."));
 }
 
 /* ---------- Daten, Export, Import ---------- */
