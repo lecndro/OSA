@@ -156,7 +156,7 @@ function einstellungenTab() {
         h("div", { class: "grid2" }, MAHLZEITEN.map(m => { const i = h("input", { type: "time", value: einst.mahlzeit_zeiten[m] }); i.onchange = () => { aendern(() => { einst.mahlzeit_zeiten[m] = i.value || einst.mahlzeit_zeiten[m]; }, true); }; return feld(m, i); })),
         feld("Farbe für Essen", essenFarbe))]],
     ["daten", "💾", "Daten und Datenschutz", () => [datenSektion(), importSektion(), sektion("Datenschutz", datenschutzInhalt()),
-      sektion("Über OSA", h("p", { class: "mut small", style: "margin:0" }, R(`OSA – Open Student Agenda · ${t("Version")} ${APP_VERSION}`)), h("div", { class: "row" }, h("button", { class: "btn", onclick: () => wasIstNeuDialog("") }, "Was ist neu")), zuruecksetzen)]]
+      sektion("Über OSA", h("p", { class: "mut small", style: "margin:0" }, R(`OSA – Open Smart Agenda · ${t("Version")} ${APP_VERSION}`)), h("div", { class: "row" }, h("button", { class: "btn", onclick: () => wasIstNeuDialog("") }, "Was ist neu")), zuruecksetzen)]]
   ];
   if (ui.einstKat && !KATS.some(k => k[0] === ui.einstKat)) ui.einstKat = null;
   const aktiv = ui.einstKat || KATS[0][0];   // PC: ohne Auswahl die erste Kategorie zeigen; Handy: ohne Auswahl die Übersicht

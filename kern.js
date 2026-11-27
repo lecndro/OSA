@@ -1000,7 +1000,7 @@ function icsExportieren(daten, von, bis, mitEssen = true, mitAufgaben = true, ma
   /* Einzeltermine mit fester UID (zweimal importieren ergibt keine Doppelten), Serien als eine Serie mit RRULE,
      Zeiten als UTC (Einzeltermine) bzw. mit Zeitzone (Serien, damit sie die Sommerzeit überstehen). */
   let tz = ""; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) { }
-  const z = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//OSA Open Student Agenda//DE", "CALSCALE:GREGORIAN"];
+  const z = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//OSA Open Smart Agenda//DE", "CALSCALE:GREGORIAN"];
   if (tz) z.push("X-WR-TIMEZONE:" + tz);
   const jetzt = new Date(), stamp = `${jetzt.getUTCFullYear()}${pad(jetzt.getUTCMonth() + 1)}${pad(jetzt.getUTCDate())}T${pad(jetzt.getUTCHours())}${pad(jetzt.getUTCMinutes())}${pad(jetzt.getUTCSeconds())}Z`;
   const d8 = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;

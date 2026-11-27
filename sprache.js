@@ -5,8 +5,11 @@ const SPRACHEN = { de: "Deutsch", en: "English", es: "Español", fr: "Français"
 const I18N = window.I18N_DATEN;
 /* ---------- Version und „Was ist neu“ ----------
    Bei jedem Update: APP_VERSION erhöhen und oben in NEUIGKEITEN einen Eintrag ergänzen. */
-const APP_VERSION = "2026.12.06";
+const APP_VERSION = "2026.12.07";
 const NEUIGKEITEN = [
+  { version: "2026.12.07", punkte: [
+    "Das Programm heißt jetzt „OSA – Open Smart Agenda“ (vorher „Open Student Agenda“); die Kurzform OSA bleibt"
+  ] },
   { version: "2026.12.06", punkte: [
     "Strichcode-Scanner erkennt viel mehr: Das Kamerabild wird nicht mehr verkleinert, schwierige Bilder (klein, unscharf, dunkel) werden mit mehreren Verfahren geprüft, es gibt ein Zielrechteck, „Standbild prüfen“ und „Foto/Bild wählen …“ (auch ohne Kamera nutzbar)"
   ] },
@@ -477,6 +480,7 @@ for (const [l, w] of Object.entries(I18N_AUFGABEN)) {
 /* Übersetzungen zum Knopf "+ Neu" (ersetzt den Reiter "+") */
 const I18N_PLUS = {
   en: {
+    "Das Programm heißt jetzt „OSA – Open Smart Agenda“ (vorher „Open Student Agenda“); die Kurzform OSA bleibt": "The program is now called “OSA – Open Smart Agenda” (formerly “Open Student Agenda”); the short name OSA stays",
     "Halte den Strichcode in das Rechteck: ruhig, gerade, gut beleuchtet und etwa 15–25 cm von der Kamera entfernt.": "Hold the barcode inside the rectangle: steady, straight, well lit and about 15–25 cm from the camera.",
     "Standbild prüfen": "Check still image",
     "Foto/Bild wählen …": "Choose photo/image …",
@@ -774,6 +778,7 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "The “+” tab is gone: on a PC there is now a “+ New” button at the top right; on a phone “+” stays in the middle of the bottom bar"
   },
   es: {
+    "Das Programm heißt jetzt „OSA – Open Smart Agenda“ (vorher „Open Student Agenda“); die Kurzform OSA bleibt": "El programa ahora se llama «OSA – Open Smart Agenda» (antes «Open Student Agenda»); la abreviatura OSA se mantiene",
     "Halte den Strichcode in das Rechteck: ruhig, gerade, gut beleuchtet und etwa 15–25 cm von der Kamera entfernt.": "Mantén el código de barras dentro del rectángulo: quieto, recto, bien iluminado y a unos 15–25 cm de la cámara.",
     "Standbild prüfen": "Comprobar imagen fija",
     "Foto/Bild wählen …": "Elegir foto/imagen …",
@@ -1071,6 +1076,7 @@ const I18N_PLUS = {
     "Der Reiter „+“ ist weggefallen: Am PC gibt es dafür den Knopf „+ Neu“ oben rechts, am Handy bleibt „+“ unten in der Mitte": "La pestaña «+» ya no existe: en el PC hay ahora un botón «+ Nuevo» arriba a la derecha; en el móvil «+» sigue en el centro de la barra inferior"
   },
   fr: {
+    "Das Programm heißt jetzt „OSA – Open Smart Agenda“ (vorher „Open Student Agenda“); die Kurzform OSA bleibt": "Le programme s'appelle maintenant « OSA – Open Smart Agenda » (avant « Open Student Agenda ») ; le sigle OSA reste",
     "Halte den Strichcode in das Rechteck: ruhig, gerade, gut beleuchtet und etwa 15–25 cm von der Kamera entfernt.": "Place le code-barres dans le rectangle : immobile, droit, bien éclairé et à environ 15–25 cm de la caméra.",
     "Standbild prüfen": "Vérifier l'image fixe",
     "Foto/Bild wählen …": "Choisir une photo/image …",

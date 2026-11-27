@@ -49,7 +49,7 @@ function timerAnzeigen() {
   const z = $("#timer-zeit"); if (z) z.textContent = zeit;
   const k = $("#timer-start"); if (k) k.textContent = t(timer.laeuft ? "Pause" : (timer.rest < timer.gesamt - 0.5 ? "Weiter" : "Start"));
   const s = $("#timer-status"); if (s) s.textContent = `${t(timer.phase === "fokus" ? "Fokus" : "Pause")}  ·  ${t("Runden")}: ${timer.runden}${timer.meldung ? "  ·  " + timer.meldung : ""}`;
-  document.title = timer.laeuft ? `${zeit} ${timer.phase === "fokus" ? "Fokus" : "Pause"} – OSA` : "OSA – Open Student Agenda";
+  document.title = timer.laeuft ? `${zeit} ${timer.phase === "fokus" ? "Fokus" : "Pause"} – OSA` : "OSA – Open Smart Agenda";
 }
 function timerStartPause() {
   timerInit();
