@@ -490,7 +490,7 @@ function navKnoepfe(nav) {
 function kopf() {
   const nav = einst.reiter_seite ? null : navKnoepfe(h("nav", { class: "nav wrap", style: "padding-block:0 8px" }));
   const logo = h("span", { class: "osa-logo", title: "OSA – Open Smart Agenda", "aria-label": "OSA", onclick: () => { ui.tab = "heute"; uiSpeichern(); render(); window.scrollTo(0, 0); } });
-  logo.innerHTML = '<svg viewBox="0 0 512 512" width="36" height="36" aria-hidden="true"><rect width="512" height="512" rx="114" fill="var(--acc)"/><circle cx="256" cy="256" r="150" fill="none" stroke="var(--acc-fg)" stroke-width="54"/><g stroke="var(--acc-fg)" stroke-width="40" stroke-linecap="round"><path d="M194 222h124"/><path d="M194 300h124"/></g></svg><span class="osa-name"><b><i>O</i>pen</b><b><i>S</i>tudent</b><b><i>A</i>genda</b></span>';
+  logo.innerHTML = logoSvg("var(--acc)", "var(--acc-fg)", 36) + '<span class="osa-name"><b><i>O</i>pen</b><b><i>S</i>mart</b><b><i>A</i>genda</b></span>';
   return h("header", { class: "top" }, h("div", { class: "wrap bar" }, logo,
     h("button", { class: "btn pri kopf-plus", title: "Neuer Eintrag", "aria-label": "Neuer Eintrag", onclick: () => neuerEintragOeffnen() }, "+ Neu"),
     (!einst.reiter_aus.includes("suche") || ui._sucheTemp) ? (() => {

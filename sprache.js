@@ -5,8 +5,11 @@ const SPRACHEN = { de: "Deutsch", en: "English", es: "Español", fr: "Français"
 const I18N = window.I18N_DATEN;
 /* ---------- Version und „Was ist neu“ ----------
    Bei jedem Update: APP_VERSION erhöhen und oben in NEUIGKEITEN einen Eintrag ergänzen. */
-const APP_VERSION = "2026.12.07";
+const APP_VERSION = "2026.12.08";
 const NEUIGKEITEN = [
+  { version: "2026.12.08", punkte: [
+    "Neues Logo (Ring mit Funke): Es passt sich immer automatisch der Hauptfarbe an – im Programm, im Browser-Tab und im Fenstersymbol der .exe"
+  ] },
   { version: "2026.12.07", punkte: [
     "Das Programm heißt jetzt „OSA – Open Smart Agenda“ (vorher „Open Student Agenda“); die Kurzform OSA bleibt"
   ] },
@@ -481,6 +484,7 @@ for (const [l, w] of Object.entries(I18N_AUFGABEN)) {
 const I18N_PLUS = {
   en: {
     "Das Programm heißt jetzt „OSA – Open Smart Agenda“ (vorher „Open Student Agenda“); die Kurzform OSA bleibt": "The program is now called “OSA – Open Smart Agenda” (formerly “Open Student Agenda”); the short name OSA stays",
+    "Neues Logo (Ring mit Funke): Es passt sich immer automatisch der Hauptfarbe an – im Programm, im Browser-Tab und im Fenstersymbol der .exe": "New logo (ring with a spark): it always adapts to the main colour automatically – in the program, in the browser tab and in the .exe window icon",
     "Halte den Strichcode in das Rechteck: ruhig, gerade, gut beleuchtet und etwa 15–25 cm von der Kamera entfernt.": "Hold the barcode inside the rectangle: steady, straight, well lit and about 15–25 cm from the camera.",
     "Standbild prüfen": "Check still image",
     "Foto/Bild wählen …": "Choose photo/image …",
@@ -779,6 +783,7 @@ const I18N_PLUS = {
   },
   es: {
     "Das Programm heißt jetzt „OSA – Open Smart Agenda“ (vorher „Open Student Agenda“); die Kurzform OSA bleibt": "El programa ahora se llama «OSA – Open Smart Agenda» (antes «Open Student Agenda»); la abreviatura OSA se mantiene",
+    "Neues Logo (Ring mit Funke): Es passt sich immer automatisch der Hauptfarbe an – im Programm, im Browser-Tab und im Fenstersymbol der .exe": "Nuevo logotipo (anillo con destello): se adapta siempre automáticamente al color principal, en el programa, en la pestaña del navegador y en el icono de la ventana del .exe",
     "Halte den Strichcode in das Rechteck: ruhig, gerade, gut beleuchtet und etwa 15–25 cm von der Kamera entfernt.": "Mantén el código de barras dentro del rectángulo: quieto, recto, bien iluminado y a unos 15–25 cm de la cámara.",
     "Standbild prüfen": "Comprobar imagen fija",
     "Foto/Bild wählen …": "Elegir foto/imagen …",
@@ -1077,6 +1082,7 @@ const I18N_PLUS = {
   },
   fr: {
     "Das Programm heißt jetzt „OSA – Open Smart Agenda“ (vorher „Open Student Agenda“); die Kurzform OSA bleibt": "Le programme s'appelle maintenant « OSA – Open Smart Agenda » (avant « Open Student Agenda ») ; le sigle OSA reste",
+    "Neues Logo (Ring mit Funke): Es passt sich immer automatisch der Hauptfarbe an – im Programm, im Browser-Tab und im Fenstersymbol der .exe": "Nouveau logo (anneau avec étincelle) : il s'adapte toujours automatiquement à la couleur principale, dans le programme, dans l'onglet du navigateur et dans l'icône de fenêtre du .exe",
     "Halte den Strichcode in das Rechteck: ruhig, gerade, gut beleuchtet und etwa 15–25 cm von der Kamera entfernt.": "Place le code-barres dans le rectangle : immobile, droit, bien éclairé et à environ 15–25 cm de la caméra.",
     "Standbild prüfen": "Vérifier l'image fixe",
     "Foto/Bild wählen …": "Choisir une photo/image …",

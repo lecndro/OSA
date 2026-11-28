@@ -230,7 +230,27 @@ function themaAnwenden() {
   if (eigene.akzent && HEX_FARBE.test(eigene.akzent) && !("auswahl" in eigene)) r.style.setProperty("--acc-soft", `color-mix(in srgb, ${eigene.akzent} 18%, ${T0.karte})`);
   r.style.zoom = ({ Klein: 0.9, Normal: 1, "Groß": 1.15, "Sehr groß": 1.3 })[einst.schrift_stufe] || 1;
   let mt = document.querySelector("meta[name=theme-color]"); if (!mt) { mt = document.createElement("meta"); mt.name = "theme-color"; document.head.append(mt); } mt.content = T0.bg;
+  faviconAnwenden(r.style.getPropertyValue("--acc") || T0.akzent, r.style.getPropertyValue("--acc-fg") || "#fff");
 }
+/* Logo (Ring mit zwei Strichen und Funke): folgt immer der Hauptfarbe; Header und Browser-Symbol nutzen dieselbe Zeichnung */
+function logoSvg(acc, fg, groesse) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"${groesse ? ` width="${groesse}" height="${groesse}"` : ""} aria-hidden="true"><rect width="512" height="512" rx="114" fill="${acc}"/><circle cx="236" cy="276" r="128" fill="none" stroke="${fg}" stroke-width="44"/><g stroke="${fg}" stroke-width="30" stroke-linecap="round"><path d="M196 248h80"/><path d="M196 304h80"/></g><path d="M404 66L417 99L450 112L417 125L404 158L391 125L358 112L391 99Z" fill="${fg}"/></svg>`;
+}
+function faviconAnwenden(acc, fg) {
+  try {
+    if (!HEX_FARBE.test(acc) || !HEX_FARBE.test(fg)) return;
+    let l = document.querySelector("link[rel=icon]"); if (!l) { l = document.createElement("link"); l.rel = "icon"; document.head.append(l); }
+    l.type = "image/svg+xml"; l.href = "data:image/svg+xml," + encodeURIComponent(logoSvg(acc, fg));
+    const api = pcApi();   // Programm (.exe): Symbol in Titelleiste und Taskleiste mitändern
+    if (api && api.fenster_icon && faviconAnwenden._zuletzt !== acc + fg) {
+      faviconAnwenden._zuletzt = acc + fg;
+      const bild = new Image();
+      bild.onload = () => { try { const c = document.createElement("canvas"); c.width = c.height = 128; c.getContext("2d").drawImage(bild, 0, 0, 128, 128); api.fenster_icon(c.toDataURL("image/png").split(",")[1]); } catch (e) { } };
+      bild.src = l.href;
+    }
+  } catch (e) { }
+}
+window.addEventListener("pywebviewready", () => { try { if (einst) themaAnwenden(); } catch (e) { } });   // .exe: Fensterschnittstelle ist erst jetzt da
 try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (einst && einst.design === "auto") themaAnwenden(); }); } catch (e) { }
 try { new MutationObserver(() => { if (einst && einst.design === "auto") themaAnwenden(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] }); } catch (e) { }
 
